@@ -44,6 +44,13 @@
     // Show/hide: set to false to hide the website version indicator
     var SHOW_WEB_VERSION = true;
 
+    // Clear stale audio-unlocked flag on non-reload navigations (e.g. Chrome "Duplicate Tab")
+    var _navEntries = performance.getEntriesByType('navigation');
+    var _navType = _navEntries.length ? _navEntries[0].type : 'navigate';
+    if (_navType !== 'reload') {
+      sessionStorage.removeItem('audio-unlocked');
+    }
+
     // AudioContext for sound playback — created at load to probe browser audio policy
     var _audioCtx = null;
     try { _audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
