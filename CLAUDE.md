@@ -180,3 +180,4 @@ When a GAS app embedded in a GitHub Pages iframe needs Google sign-in (e.g. to r
 Developed by: ShadowAISolutions
 
 
+
