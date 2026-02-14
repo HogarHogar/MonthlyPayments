@@ -28,7 +28,21 @@ Each GAS project has a code file and a corresponding embedding page. Register th
 - Look for `<meta name="build-version" content="...">` in the `<head>`
 - Format includes a `w` suffix: e.g. `"01.11w"`
 - Example: if build-version is `"01.11w"`, change it to `"01.12w"`
-- Each embedding page polls itself every 10 seconds — when the deployed version differs from the loaded version, it auto-reloads
+- Each embedding page polls `version.txt` every 10 seconds — when the deployed version differs from the loaded version, it auto-reloads
+
+### Auto-Refresh via version.txt Polling
+- **All embedding pages must use the `version.txt` polling method** — do NOT poll the page's own HTML
+- Each `httpsdocs/` directory must contain a `version.txt` file holding the current build-version string (e.g. `01.08w`)
+- **When bumping `build-version` in an HTML page, also update the corresponding `version.txt`** to the same value
+- The polling logic fetches `version.txt` (a ~7-byte file) instead of the full HTML page, reducing bandwidth per poll from kilobytes to bytes
+- URL resolution: derive `version.txt` URL relative to the current page's directory:
+  ```javascript
+  var basePath = window.location.href.split('?')[0];
+  var versionUrl = basePath.substring(0, basePath.lastIndexOf('/') + 1) + 'version.txt';
+  ```
+- Cache-bust with a query param: `fetch(versionUrl + '?_cb=' + Date.now(), { cache: 'no-store' })`
+- Compare the trimmed response text against the page's `<meta name="build-version">` content
+- The template in `autoUpdateTemplateFiles/AutoUpdateOnlyHtmlTemplate.html` already implements this pattern — use it as a starting point for new projects
 
 ## Commit Message Naming
 - **Every commit message MUST start with the version number(s) being updated**
