@@ -40,8 +40,10 @@ Each GAS project has a code file and a corresponding embedding page. Register th
   ```javascript
   var basePath = window.location.href.split('?')[0];
   var pageName = basePath.substring(basePath.lastIndexOf('/') + 1).replace('.html', '');
+  if (!pageName) pageName = 'index';
   var versionUrl = basePath.substring(0, basePath.lastIndexOf('/') + 1) + pageName + '.version.txt';
   ```
+- **The `if (!pageName)` fallback is critical** — when a page is accessed via a directory URL (e.g. `https://example.github.io/myapp/` instead of `.../myapp/index.html`), `pageName` resolves to an empty string. Without the fallback, the poll fetches `.version.txt` (wrong file), gets a 404 whose body doesn't match the build-version, and triggers an infinite reload loop
 - Cache-bust with a query param: `fetch(versionUrl + '?_cb=' + Date.now(), { cache: 'no-store' })`
 - Compare the trimmed response text against the page's `<meta name="build-version">` content
 - The template in `autoUpdateTemplateFiles/AutoUpdateOnlyHtmlTemplate.html` already implements this pattern — use it as a starting point for new projects
