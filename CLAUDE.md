@@ -29,13 +29,22 @@ These rules apply universally — they are **NOT** skipped by the template repo 
 ### Template Drift Checks (forks/clones only)
 These checks catch template drift that accumulates when the repo is cloned/forked into a new name. They do **not** apply to the template repo itself.
 
-1. **Org name auto-detect** — run `git remote -v` and extract the org/owner from the remote URL (e.g. `github.com/NewOrg/myrepo` → `NewOrg`). Compare it to the `YOUR_ORG_NAME` value in the Template Variables table. If they differ, update the table value and propagate to every file in the "Where it appears" column. Also update `DEVELOPER_NAME` to match the new org name (unless the user has explicitly set `DEVELOPER_NAME` to a different value)
-2. **Repo name auto-detect** — compare the actual repo name (from the same remote URL) to the `YOUR_REPO_NAME` value in the Template Variables table. If they differ, update the table value and propagate it to every file in the "Where it appears" column
-3. **README live site link** — check if `README.md` still contains the placeholder text (`You are currently using the **YOUR_REPO_NAME**...`). If so, replace it with: `**Live site:** [YOUR_ORG_NAME.github.io/YOUR_REPO_NAME](https://YOUR_ORG_NAME.github.io/YOUR_REPO_NAME)` (resolved values)
-4. **Remove "Copy This Repository" and "Initialize This Template" sections** — if `README.md` contains the `## Copy This Repository` or `## Initialize This Template` sections, delete each entirely (from the `##` heading through to the line immediately before the next `##` heading). These sections are only useful on the template repo itself; forks/clones should not keep them
-5. **Unresolved placeholders** — scan for any literal `YOUR_ORG_NAME`, `YOUR_REPO_NAME`, `YOUR_PROJECT_TITLE`, or `DEVELOPER_NAME` strings in code files (not CLAUDE.md) and replace them with resolved values
-6. **Variable propagation** — if any value in the Template Variables table was changed (in this or a prior session), verify the new value has been propagated to every file listed in the "Where it appears" column
-7. **Confirm completion** — after all checks pass, briefly state to the user: "Session start checklist complete — no issues found" (or list what was fixed). Then proceed to their request
+1. **Org name auto-detect** — run `git remote -v` and extract the org/owner from the remote URL (e.g. `github.com/NewOrg/myrepo` → `NewOrg`). Compare it to the `YOUR_ORG_NAME` value in the Template Variables table. If they differ, update the table value and propagate to every file in the "Where it appears" column by **finding and replacing** the old org name (`ShadowAISolutions`) with the new org name in all occurrences (URLs, text, branding). Also update `DEVELOPER_NAME` to match the new org name (unless the user has explicitly set `DEVELOPER_NAME` to a different value)
+2. **Repo name auto-detect** — compare the actual repo name (from the same remote URL) to the `YOUR_REPO_NAME` value in the Template Variables table. If they differ, update the table value and propagate it to every file in the "Where it appears" column by **finding and replacing** the old repo name (`autoupdatehtmltemplate`) with the new repo name in all occurrences (URLs, text, structure references)
+3. **Dynamic URL propagation** — after steps 1–2, verify that **all GitHub URLs** in the repo point to the fork's org/repo. These URLs cannot use relative paths (GitHub web app routes like `/issues/new` and `/security/advisories/new` require absolute URLs with the org and repo name). The drift check must find and replace the template repo's values (`ShadowAISolutions`/`autoupdatehtmltemplate`) with the fork's actual values in every URL. Files containing dynamic URLs:
+   - `.github/SECURITY.md` — private security advisory link
+   - `.github/ISSUE_TEMPLATE/config.yml` — support and security advisory links
+   - `repository-information/SUPPORT.md` — issue creation links
+   - `repository-information/STATUS.md` — live site URL
+   - `repository-information/ARCHITECTURE.md` — live site URL in Mermaid diagram
+   - `CITATION.cff` — repository URL and site URL
+   - `README.md` — live site link, source repo URL
+   When replacing, change **only the org and repo name portions** of each URL — preserve the rest of the URL path and structure intact (e.g. `/security/advisories/new` stays the same, only `ShadowAISolutions/autoupdatehtmltemplate` changes to `NewOrg/newrepo`)
+4. **README live site link** — check if `README.md` still contains the placeholder text (`You are currently using the **YOUR_REPO_NAME**...`). If so, replace it with: `**Live site:** [YOUR_ORG_NAME.github.io/YOUR_REPO_NAME](https://YOUR_ORG_NAME.github.io/YOUR_REPO_NAME)` (resolved values)
+5. **Remove "Copy This Repository" and "Initialize This Template" sections** — if `README.md` contains the `## Copy This Repository` or `## Initialize This Template` sections, delete each entirely (from the `##` heading through to the line immediately before the next `##` heading). These sections are only useful on the template repo itself; forks/clones should not keep them
+6. **Unresolved placeholders** — scan for any literal `YOUR_ORG_NAME`, `YOUR_REPO_NAME`, `YOUR_PROJECT_TITLE`, or `DEVELOPER_NAME` strings in code files (not CLAUDE.md) and replace them with resolved values
+7. **Variable propagation** — if any value in the Template Variables table was changed (in this or a prior session), verify the new value has been propagated to every file listed in the "Where it appears" column
+8. **Confirm completion** — after all checks pass, briefly state to the user: "Session start checklist complete — no issues found" (or list what was fixed). Then proceed to their request
 
 ---
 > **--- END OF SESSION START CHECKLIST ---**
@@ -103,9 +112,9 @@ These variables are the **single source of truth** for repo-specific values. Whe
 
 | Variable | Value | Where it appears |
 |----------|-------|------------------|
-| `YOUR_ORG_NAME` | `YourOrgName` | README (live site link), CITATION.cff (repository URL, site URL), SUPPORT (issue links), SECURITY (advisory link), STATUS (live URL), ARCHITECTURE (diagram URL), issue template config (URLs), workflow file |
+| `YOUR_ORG_NAME` | `YourOrgName` | README (live site link), CITATION.cff (repository URL, site URL), SUPPORT (issue links), SECURITY (advisory link), STATUS (live URL), ARCHITECTURE (diagram URL), issue template config (URLs) |
 | `YOUR_ORG_LOGO_URL` | `https://logoipsum.com/logoipsum-avatar.png` | `index.html` and template HTML (`YOUR_ORG_LOGO_URL` JS variable), available for use in pages that need the org logo |
-| `YOUR_REPO_NAME` | `YourRepoName` | README (structure tree, live site link), CITATION.cff, ARCHITECTURE diagram, STATUS live URL, SUPPORT issue links, SECURITY advisory link, issue template config |
+| `YOUR_REPO_NAME` | `YourRepoName` | README (structure tree, live site link), CITATION.cff (repository URL, site URL), ARCHITECTURE (diagram URL), STATUS (live URL), SUPPORT (issue links), SECURITY (advisory link), issue template config (URLs) |
 | `YOUR_PROJECT_TITLE` | `Auto Update HTML Template` | README (title), `<title>` tag in `live-site-pages/index.html` and `live-site-templates/AutoUpdateOnlyHtmlTemplate.html` |
 | `DEVELOPER_NAME` | `ShadowAISolutions` | LICENSE (copyright), README ("Developed by:" footer), CITATION.cff (author name), "Developed by:" footers (all files including `index.html`, template HTML, workflow, issue templates, YAML, Markdown), FUNDING.yml (sponsor handle), GOVERNANCE (ownership), CONTRIBUTING (convention text), PR template (checklist + footer) |
 | `DEVELOPER_LOGO_URL` | `https://www.shadowaisolutions.com/SAIS%20Logo.png` | HTML splash screen `LOGO_URL` variable (in `index.html` and template) |
