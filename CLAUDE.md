@@ -15,7 +15,7 @@ These variables are the **single source of truth** for repo-specific values. Whe
 - **In code files** (HTML, YAML, Markdown, etc.): use the **resolved value** (e.g. write `ShadowAISolutions`, not `YOUR_ORG_NAME`)
 - **In CLAUDE.md instructions**: the placeholder names (`YOUR_ORG_NAME`, etc.) may appear in examples and rules — Claude Code resolves them using the table above
 - **When a value changes**: update the table above, then propagate the new value to every file listed in the "Where it appears" column
-- **`YOUR_REPO_NAME`** — when cloning this template for a new repo, update its value in the table above to the new repo name, then propagate to all files listed
+- **`YOUR_REPO_NAME` auto-detect** — on first interaction with a repo, check whether the `YOUR_REPO_NAME` value in the table matches the actual GitHub repo name (from the remote URL or directory context). If it doesn't match, update the value in the table **and** propagate the new value to every file listed in the "Where it appears" column
 
 ## Deployment Flow
 - Never push directly to `main`
