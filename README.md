@@ -2,7 +2,7 @@
 
 A GitHub Pages deployment framework with automatic version polling, auto-refresh, and Google Apps Script (GAS) embedding support.
 
-Last updated: `2026-02-15 04:28:24 PM EST`
+Last updated: `2026-02-15 04:31:42 PM EST`
 
 You are currently using the **autoupdatehtmltemplate**, update your code and claude will update the live site link here
 
@@ -24,13 +24,11 @@ Go to your repository's [**Pages settings**](https://github.com/ShadowAISolution
 - **Source**: Select **GitHub Actions** (not "Deploy from a branch")
 - This allows the included workflow to deploy your `live-site-pages/` directory automatically
 
-### 2. Create the `github-pages` Environment
+### 2. Configure the `github-pages` Environment
 
-Go to your repository's [**Environments settings**](https://github.com/ShadowAISolutions/autoupdatehtmltemplate/settings/environments) and:
+Go to your repository's [**Environments settings**](https://github.com/ShadowAISolutions/autoupdatehtmltemplate/settings/environments), click into the `github-pages` environment, and:
 
-- Click **New environment**
-- Name it exactly `github-pages`
-- No additional protection rules are needed — the workflow handles deployment automatically
+- Select the dropdown next to the **Deployment branches and tags** heading and choose **No restriction**
 
 ### 3. Run Claude Code and Type `initialize`
 
