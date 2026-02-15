@@ -33,6 +33,10 @@ These checks catch template drift that accumulates when the repo is cloned/forke
 4. **Variable propagation** — if any value in the Template Variables table was changed (in this or a prior session), verify the new value has been propagated to every file listed in the "Where it appears" column
 5. **Confirm completion** — after all checks pass, briefly state to the user: "Session start checklist complete — no issues found" (or list what was fixed). Then proceed to their request
 
+---
+> **--- END OF SESSION START CHECKLIST ---**
+---
+
 ## Template Repo Guard
 > When `YOUR_REPO_NAME` is `autoupdatehtmltemplate` (i.e. this is the template repo itself, not a fork/clone):
 > - **Session Start Checklist template drift checks are skipped** — step #1 short-circuits the numbered checklist. The "Always Run" section (branch hygiene and deployment flow) still applies every session
