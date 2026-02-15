@@ -14,9 +14,6 @@ These variables are the **single source of truth** for repo-specific values. Whe
 ### How variables work
 - **In code files** (HTML, YAML, Markdown, etc.): use the **resolved value** (e.g. write `ShadowAISolutions`, not `YOUR_ORG_NAME`)
 - **In CLAUDE.md instructions**: the placeholder names (`YOUR_ORG_NAME`, etc.) may appear in examples and rules — Claude Code resolves them using the table above
-- **When a value changes**: update the table above, then propagate the new value to every file listed in the "Where it appears" column
-- **`YOUR_REPO_NAME` auto-detect** — on first interaction with a repo, check whether the `YOUR_REPO_NAME` value in the table matches the actual GitHub repo name (from the remote URL or directory context). If it doesn't match, update the value in the table **and** propagate the new value to every file listed in the "Where it appears" column
-- **README live site link auto-update** — when `YOUR_REPO_NAME` or `YOUR_ORG_NAME` changes (or on first interaction if the README still contains the placeholder text), replace the placeholder line in README.md with the resolved live site link. The placeholder reads: `You are currently using the **YOUR_REPO_NAME**, update your code and claude will update the live site link here`. Replace it with: `**Live site:** [YOUR_ORG_NAME.github.io/YOUR_REPO_NAME](https://YOUR_ORG_NAME.github.io/YOUR_REPO_NAME)` (using the resolved values from the table above)
 
 ## Session Start Checklist
 **Before doing ANY work in a new session, complete these checks in order:**
@@ -24,8 +21,14 @@ These variables are the **single source of truth** for repo-specific values. Whe
 1. **Repo name auto-detect** — run `git remote -v` and compare the actual repo name to the `YOUR_REPO_NAME` value in the Template Variables table. If they differ, update the table value and propagate it to every file in the "Where it appears" column
 2. **README live site link** — check if `README.md` still contains the placeholder text (`You are currently using the **YOUR_REPO_NAME**...`). If so, replace it with: `**Live site:** [YOUR_ORG_NAME.github.io/YOUR_REPO_NAME](https://YOUR_ORG_NAME.github.io/YOUR_REPO_NAME)` (resolved values)
 3. **Unresolved placeholders** — scan for any literal `YOUR_ORG_NAME`, `YOUR_REPO_NAME`, or `YOUR_PROJECT_TITLE` strings in code files (not CLAUDE.md) and replace them with resolved values
+4. **Variable propagation** — if any value in the Template Variables table was changed (in this or a prior session), verify the new value has been propagated to every file listed in the "Where it appears" column
 
 These checks catch template drift that accumulates when the repo is cloned/forked into a new name.
+
+### Maintaining these checklists
+- The Session Start and Pre-Commit checklists are the **single source of truth** for all actionable rules. Detailed sections below provide reference context only
+- When adding new rules to CLAUDE.md, add the actionable check to the appropriate checklist and put supporting details in a reference section — do not duplicate the rule in both places
+- When editing CLAUDE.md, check whether any existing reference section restates a checklist item — if so, remove the duplicate and add a `*Rule: see ... Checklist item #N*` pointer instead
 
 ## Pre-Commit Checklist
 **Before every commit, verify ALL of the following:**
@@ -51,10 +54,9 @@ These checks catch template drift that accumulates when the repo is cloned/forke
 - The "Create a pull request" message in push output is just GitHub boilerplate — ignore it, the workflow handles merging automatically
 
 ## Version Bumping
-- **Every commit that modifies a GAS project's `.gs` file MUST also increment its `VERSION` variable by 0.01**
+*Rule: see Pre-Commit Checklist item #1. Reference details below.*
 - The `VERSION` variable is near the top of each `.gs` file (look for `var VERSION = "..."`)
-- Format includes a `g` suffix: e.g. `"01.13g"`
-- Example: if VERSION is `"01.13g"`, change it to `"01.14g"`
+- Format includes a `g` suffix: e.g. `"01.13g"` → `"01.14g"`
 - Do NOT bump VERSION if the commit doesn't touch the `.gs` file
 
 ### GAS Projects
@@ -65,17 +67,15 @@ Each GAS project has a code file and a corresponding embedding page. Register th
 | *(Project name)* | `googleAppsScripts/<Project Name>/<CodeFile>.gs` | `live-site-pages/<page-name>.html` |
 
 ## Build Version (Auto-Refresh for embedding pages)
-- **Every commit that modifies an embedding HTML page MUST increment its `build-version` meta tag by 0.01**
+*Rules: see Pre-Commit Checklist items #2, #3, #4. Reference details below.*
 - Look for `<meta name="build-version" content="...">` in the `<head>`
-- Format includes a `w` suffix: e.g. `"01.11w"`
-- Example: if build-version is `"01.11w"`, change it to `"01.12w"`
+- Format includes a `w` suffix: e.g. `"01.11w"` → `"01.12w"`
 - Each embedding page polls `version.txt` every 10 seconds — when the deployed version differs from the loaded version, it auto-reloads
 
 ### Auto-Refresh via version.txt Polling
 - **All embedding pages must use the `version.txt` polling method** — do NOT poll the page's own HTML
 - **Version file naming**: the version file must be named `<page-name>.version.txt`, matching the HTML file it tracks (e.g. `index.html` → `index.version.txt`, `dashboard.html` → `dashboard.version.txt`). The `.version.txt` double extension ensures the version file sorts **after** the `.html` file alphabetically
 - Each version file holds only the current build-version string (e.g. `01.08w`)
-- **When bumping `build-version` in an HTML page, also update the corresponding `<page-name>.version.txt`** to the same value
 - The polling logic fetches the version file (~7 bytes) instead of the full HTML page, reducing bandwidth per poll from kilobytes to bytes
 - URL resolution: derive the version file URL relative to the current page's directory, using the page's own filename:
   ```javascript
@@ -88,7 +88,6 @@ Each GAS project has a code file and a corresponding embedding page. Register th
 - Cache-bust with a query param: `fetch(versionUrl + '?_cb=' + Date.now(), { cache: 'no-store' })`
 - Compare the trimmed response text against the page's `<meta name="build-version">` content
 - The template in `live-site-templates/AutoUpdateOnlyHtmlTemplate.html` already implements this pattern — use it as a starting point for new projects
-- **The template's build-version must always remain at `01.00w`** — never bump the template's version, even when editing the template itself. The template is a starting point, not a deployed page. Only bump versions on actual embedding pages copied from it
 
 ### New Embedding Page Setup Checklist
 When creating a **new** HTML embedding page, follow every step below:
@@ -120,12 +119,9 @@ live-site-pages/
 For pages that live directly in `live-site-pages/` (not in a subdirectory), the version file and `sounds/` folder sit alongside the HTML file (e.g. `live-site-pages/index.html` + `live-site-pages/index.version.txt`).
 
 ## Commit Message Naming
-- **Every commit message MUST start with the version number(s) being updated**
-- Both version types use the `v` prefix (meaning "version") — the suffix indicates the type: `g` = Google Apps Script, `w` = website
-- If a `.gs` file was updated: prefix with `v{VERSION}` (e.g. `v01.19g`)
-- If an embedding HTML page was updated: prefix with `v{BUILD_VERSION}` (e.g. `v01.12w`)
-- If both were updated in the same commit: include both (e.g. `v01.19g v01.12w`)
-- If neither was updated: no version prefix needed
+*Rule: see Pre-Commit Checklist item #9. Reference details below.*
+- Both version types use the `v` prefix — suffix indicates type: `g` = Google Apps Script, `w` = website
+- If neither a `.gs` file nor an embedding HTML page was updated: no version prefix needed
 - Example: `v01.19g Fix sign-in popup to auto-close after authentication`
 - Example: `v01.19g v01.12w Add auth wall with build version bump`
 
@@ -210,15 +206,10 @@ When a GAS app embedded in a GitHub Pages iframe needs Google sign-in (e.g. to r
 | `gas-auth-complete` | GAS iframe → parent | Tells parent auth succeeded (hides wall, reloads iframe) |
 
 ## Keeping Documentation Files in Sync
-
-After every change, review whether any of the following documentation files need updating. **If a change affects what these files describe, update them in the same commit.**
+*Mandatory rules: see Pre-Commit Checklist items #5, #6, #7, #8. Reference table below for additional files to consider.*
 
 | File | Update when... |
 |------|---------------|
-| `README.md` | Project structure changes (new directories, files moved), new features added, "How it Works" sections become outdated, new documentation files are created |
-| `repository-information/ARCHITECTURE.md` | System components change, new data flows are added, CI/CD pipeline is modified, new GAS projects or embedding pages are introduced |
-| `repository-information/CHANGELOG.md` | **Every user-facing change** — new features, bug fixes, infrastructure changes. Add an entry under the current version heading |
-| `repository-information/STATUS.md` | A new page or GAS project is added/removed, a version number changes, deployment status changes |
 | `.gitignore` | New file types or tooling is introduced that generates artifacts (e.g. adding Node tooling, Python venvs, build outputs) |
 | `.editorconfig` | New file types are introduced that need specific formatting rules |
 | `.github/CONTRIBUTING.md` | Development workflow changes, new conventions are added to CLAUDE.md that contributors need to know |
@@ -227,21 +218,15 @@ After every change, review whether any of the following documentation files need
 | `.github/ISSUE_TEMPLATE/*.yml` | New project areas are added (update the "Affected Area" / "Area" dropdown options) |
 | `.github/PULL_REQUEST_TEMPLATE.md` | New checklist items become relevant (e.g. new conventions, new mandatory checks) |
 
-### Rules
-- **CHANGELOG.md is mandatory** — every commit that changes user-facing behavior must add a changelog entry
-- **README.md structure tree** — keep the project structure ASCII tree accurate whenever files/directories are added, moved, or deleted
-- **STATUS.md versions** — whenever a version is bumped (`.gs` or `.html`), update the corresponding version in STATUS.md
-- Other files: update only when the change is genuinely relevant — don't force unnecessary edits
+Update these only when the change is genuinely relevant — don't force unnecessary edits.
 
 ## Developer Branding
-- **Every code file** in this repo must have a comment at the very bottom: `Developed by: YOUR_ORG_NAME`
-- Use the appropriate comment syntax for each file type:
-  - HTML: `<!-- Developed by: YOUR_ORG_NAME -->`
-  - JavaScript / GAS (.gs): `// Developed by: YOUR_ORG_NAME`
-  - YAML: `# Developed by: YOUR_ORG_NAME`
-  - CSS: `/* Developed by: YOUR_ORG_NAME */`
-  - Markdown: plain text at the very bottom
-- When creating new code files, always add this comment as the last line
+*Rule: see Pre-Commit Checklist item #10. Syntax reference below.*
+- HTML: `<!-- Developed by: YOUR_ORG_NAME -->`
+- JavaScript / GAS (.gs): `// Developed by: YOUR_ORG_NAME`
+- YAML: `# Developed by: YOUR_ORG_NAME`
+- CSS: `/* Developed by: YOUR_ORG_NAME */`
+- Markdown: plain text at the very bottom
 - This section must remain the **last section** in CLAUDE.md — do not add new sections below it (except Template Variables, which is at the top)
 
 Developed by: ShadowAISolutions
