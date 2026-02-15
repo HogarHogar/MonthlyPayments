@@ -24,6 +24,8 @@ These rules apply universally — they are **NOT** skipped by the template repo 
 
 **Template repo short-circuit** — run `git remote -v` and extract the repo name. If it is `autoupdatehtmltemplate`, skip the Template Drift Checks below and proceed directly to the user's request.
 
+**Initialized repo short-circuit** — check if `README.md` contains the placeholder text `You are currently using the **`. If it does NOT, the repo has already been initialized — skip the Template Drift Checks below and proceed directly to the user's request. If it DOES, the repo is a fresh fork that needs initialization — continue to the Template Drift Checks.
+
 ### Template Drift Checks (forks/clones only)
 These checks catch template drift that accumulates when the repo is cloned/forked into a new name. They do **not** apply to the template repo itself.
 
