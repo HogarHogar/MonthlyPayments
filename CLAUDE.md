@@ -18,7 +18,7 @@ These checks catch template drift that accumulates when the repo is cloned/forke
 ## Template Repo Guard
 > When `YOUR_REPO_NAME` is `autoupdatehtmltemplate` (i.e. this is the template repo itself, not a fork/clone):
 > - **Session Start Checklist item #2** is skipped — the README placeholder is intentional
-> - **Session Start Checklist item #3** — do NOT resolve `YOUR_PROJECT_TITLE` in `live-site-pages/index.html` or `live-site-templates/AutoUpdateOnlyHtmlTemplate.html` — `index.html` must stay identical to the template, and both files intentionally use the placeholder
+> - **Session Start Checklist item #3** — do NOT resolve placeholder variables in `live-site-pages/index.html` or `live-site-templates/AutoUpdateOnlyHtmlTemplate.html` — both files intentionally keep literal placeholders (e.g. `YOUR_PROJECT_TITLE`) so forks start with them. On forks (where `YOUR_REPO_NAME` differs), checklist #3 resolves these placeholders in **both** files using the Template Variables table
 > - **Pre-Commit Checklist items #2, #3, #5, #7** are skipped unless the user explicitly requests version bumps or changelog entries — the template repo's HTML pages and documentation should not auto-increment
 > - **GitHub Pages deployment is skipped** — the workflow's `deploy` job checks `github.event.repository.name != 'autoupdatehtmltemplate'` and won't run on the template repo
 > - Pre-Commit items #1 (`.gs` version bump), #4, #6, #8, #9, #10 still apply normally
@@ -48,8 +48,9 @@ These variables are the **single source of truth** for repo-specific values. Whe
 
 | Variable | Value | Where it appears |
 |----------|-------|------------------|
-| `YOUR_ORG_NAME` | `ShadowAISolutions` | LICENSE, README (live site link, "Developed by:" footer), CITATION.cff, "Developed by:" footers, FUNDING.yml, issue templates, GOVERNANCE, SUPPORT, SECURITY, ARCHITECTURE, STATUS, CONTRIBUTING, PR template, workflow file |
+| `YOUR_ORG_NAME` | `ShadowAISolutions` | LICENSE, README (live site link, "Developed by:" footer), CITATION.cff, "Developed by:" footers (including `index.html` and template HTML), FUNDING.yml, issue templates, GOVERNANCE, SUPPORT, SECURITY, ARCHITECTURE, STATUS, CONTRIBUTING, PR template, workflow file |
 | `YOUR_REPO_NAME` | `autoupdatehtmltemplate` | README (title, structure tree, live site link), CITATION.cff, ARCHITECTURE diagram, STATUS live URL, SUPPORT issue links, SECURITY advisory link, issue template config |
+| `YOUR_PROJECT_TITLE` | `autoupdatehtmltemplate` | `<title>` tag in `live-site-pages/index.html` and `live-site-templates/AutoUpdateOnlyHtmlTemplate.html` |
 | `DEVELOPER_LOGO_URL` | `https://www.shadowaisolutions.com/SAIS%20Logo.png` | HTML splash screen `LOGO_URL` variable (in `index.html` and template) |
 | `COMPANY_LOGO_URL` | `https://pfcassociates.github.io/PFC_Website/PFC_images/PFC_LOGO_4_Transparent.png` | Available for use in pages that need the company logo |
 
