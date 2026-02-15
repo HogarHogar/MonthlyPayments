@@ -36,9 +36,9 @@ These checks catch template drift that accumulates when the repo is cloned/forke
 ## Template Repo Guard
 > When `YOUR_REPO_NAME` is `autoupdatehtmltemplate` (i.e. this is the template repo itself, not a fork/clone):
 > - **Session Start Checklist template drift checks are skipped** — step #1 short-circuits the numbered checklist. The "Always Run" section (branch hygiene and deployment flow) still applies every session
-> - **Pre-Commit Checklist items #2, #3, #5, #7** are skipped unless the user explicitly requests version bumps or changelog entries — the template repo's HTML pages and documentation should not auto-increment
+> - **All version bumps are skipped** — Pre-Commit Checklist items #1 (`.gs` version bump), #2 (HTML build-version), #3 (version.txt sync), #5 (STATUS.md), #7 (CHANGELOG.md), and #9 (version prefix in commit message) are all skipped unless the user explicitly requests them
 > - **GitHub Pages deployment is skipped** — the workflow's `deploy` job checks `github.event.repository.name != 'autoupdatehtmltemplate'` and won't run on the template repo
-> - Pre-Commit items #1 (`.gs` version bump), #4, #6, #8, #9, #10 still apply normally
+> - Pre-Commit items #4, #6, #8, #10 still apply normally
 
 ## Pre-Commit Checklist
 **Before every commit, verify ALL of the following:**
