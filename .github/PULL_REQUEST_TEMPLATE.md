@@ -26,9 +26,9 @@
 ## Checklist
 
 - [ ] Code follows project conventions ([CLAUDE.md](../CLAUDE.md))
-- [ ] All code files end with `Developed by: YOUR_ORG_NAME`
+- [ ] All code files end with `Developed by: ShadowAISolutions`
 - [ ] Commit message starts with version prefix (if applicable)
 - [ ] No `alert()` / `confirm()` / `prompt()` — custom modals only
 
-<!-- Developed by: YOUR_ORG_NAME -->
+<!-- Developed by: ShadowAISolutions -->
 

@@ -33,16 +33,24 @@
   </style>
 </head>
 <body>
-  <div id="splash-green" class="splash"><div class="splash-title">Website Ready</div><img src="YOUR_LOGO_URL" alt=""></div>
+  <div id="splash-green" class="splash"><div class="splash-title">Website Ready</div><img id="splash-logo" src="" alt=""></div>
 
   <!-- YOUR PAGE CONTENT HERE -->
 
   <script>
+    // ── CONFIG ──────────────────────────────────────────────────────────
+    // Logo shown on the green "Website Ready" splash screen
+    var LOGO_URL = 'https://www.shadowaisolutions.com/SAIS%20Logo.png';
+
     // Auto-refresh: set to false to disable build-version polling
     var AUTO_REFRESH = true;
 
     // Show/hide: set to false to hide the website version indicator
     var SHOW_WEB_VERSION = true;
+    // ────────────────────────────────────────────────────────────────────
+
+    // Set splash logo from config variable
+    document.getElementById('splash-logo').src = LOGO_URL;
 
     // Clear stale audio-unlocked flag on non-reload navigations (e.g. Chrome "Duplicate Tab")
     var _navEntries = performance.getEntriesByType('navigation');
@@ -205,7 +213,7 @@
   </script>
 </body>
 </html>
-<!-- Developed by: YOUR_ORG_NAME -->
+<!-- Developed by: ShadowAISolutions -->
 
 
 

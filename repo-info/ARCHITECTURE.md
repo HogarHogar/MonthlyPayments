@@ -27,7 +27,7 @@ graph TB
 
         subgraph "GitHub Pages Deployment"
             DEPLOY_PAGES["Deploy live-site-pages/ to\nGitHub Pages"]
-            LIVE["Live Site\nYOUR_ORG_NAME.github.io/YOUR_REPO_NAME"]
+            LIVE["Live Site\nShadowAISolutions.github.io/YOUR_REPO_NAME"]
             DEPLOY_PAGES --> LIVE
         end
 
@@ -74,5 +74,5 @@ graph TB
     style CLAUDE_MD fill:#ce93d8,color:#000
 ```
 
-Developed by: YOUR_ORG_NAME
+Developed by: ShadowAISolutions
 

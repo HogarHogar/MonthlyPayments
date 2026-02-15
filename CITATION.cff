@@ -3,10 +3,10 @@ message: "If you use this software, please cite it as below."
 title: "YOUR_REPO_NAME"
 abstract: "A GitHub Pages deployment framework with automatic version polling, auto-refresh, and Google Apps Script embedding support."
 authors:
-  - name: "YOUR_ORG_NAME"
+  - name: "ShadowAISolutions"
 type: software
 license: "All Rights Reserved"
-repository-code: "https://github.com/YOUR_ORG_NAME/YOUR_REPO_NAME"
-url: "https://YOUR_ORG_NAME.github.io/YOUR_REPO_NAME"
-# Developed by: YOUR_ORG_NAME
+repository-code: "https://github.com/ShadowAISolutions/YOUR_REPO_NAME"
+url: "https://ShadowAISolutions.github.io/YOUR_REPO_NAME"
+# Developed by: ShadowAISolutions
 

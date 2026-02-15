@@ -2,7 +2,7 @@
 
 A GitHub Pages deployment framework with automatic version polling, auto-refresh, and Google Apps Script (GAS) embedding support.
 
-**Live site:** [YOUR_ORG_NAME.github.io/YOUR_REPO_NAME](https://YOUR_ORG_NAME.github.io/YOUR_REPO_NAME)
+**Live site:** [ShadowAISolutions.github.io/YOUR_REPO_NAME](https://ShadowAISolutions.github.io/YOUR_REPO_NAME)
 
 ## How It Works
 
@@ -67,5 +67,5 @@ YOUR_REPO_NAME/
 | [Support](repo-info/SUPPORT.md) | Getting help |
 | [Governance](repo-info/GOVERNANCE.md) | Project ownership and decision making |
 
-Developed by: YOUR_ORG_NAME
+Developed by: ShadowAISolutions
 

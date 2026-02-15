@@ -1,5 +1,21 @@
 # Claude Code Instructions
 
+## Template Variables
+
+These variables are the **single source of truth** for repo-specific values. When a variable value is changed here, Claude Code must propagate the new value to every file in the repo that uses it.
+
+| Variable | Value | Where it appears |
+|----------|-------|------------------|
+| `YOUR_ORG_NAME` | `ShadowAISolutions` | LICENSE, README, CITATION.cff, "Developed by:" footers, FUNDING.yml, issue templates, GOVERNANCE, SUPPORT, SECURITY, ARCHITECTURE, STATUS, CONTRIBUTING, PR template, workflow file |
+| `YOUR_REPO_NAME` | `YOUR_REPO_NAME` | README title/structure tree, CITATION.cff, ARCHITECTURE diagram, STATUS live URL, SUPPORT issue links, SECURITY advisory link, issue template config |
+| `YOUR_LOGO_URL` | `https://www.shadowaisolutions.com/SAIS%20Logo.png` | HTML splash screen `LOGO_URL` variable (in `index.html` and template) |
+
+### How variables work
+- **In code files** (HTML, YAML, Markdown, etc.): use the **resolved value** (e.g. write `ShadowAISolutions`, not `YOUR_ORG_NAME`)
+- **In CLAUDE.md instructions**: the placeholder names (`YOUR_ORG_NAME`, etc.) may appear in examples and rules — Claude Code resolves them using the table above
+- **When a value changes**: update the table above, then propagate the new value to every file listed in the "Where it appears" column
+- **`YOUR_REPO_NAME`** is intentionally left as a placeholder — set it to the actual repo name after cloning this template
+
 ## Deployment Flow
 - Never push directly to `main`
 - Push to `claude/*` branches only
@@ -200,9 +216,9 @@ After every change, review whether any of the following documentation files need
   - CSS: `/* Developed by: YOUR_ORG_NAME */`
   - Markdown: plain text at the very bottom
 - When creating new code files, always add this comment as the last line
-- This section must remain the **last section** in CLAUDE.md — do not add new sections below it
+- This section must remain the **last section** in CLAUDE.md — do not add new sections below it (except Template Variables, which is at the top)
 
-Developed by: YOUR_ORG_NAME
+Developed by: ShadowAISolutions
 
 
 
