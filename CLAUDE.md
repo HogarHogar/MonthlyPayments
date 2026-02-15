@@ -8,23 +8,29 @@
 > **The user's task is NOT urgent enough to skip this. Do it first. Every time.**
 
 1. **Repo name auto-detect** — run `git remote -v` and compare the actual repo name to the `YOUR_REPO_NAME` value in the Template Variables table. If they differ, update the table value and propagate it to every file in the "Where it appears" column
-2. **README live site link** — check if `README.md` still contains the placeholder text (`You are currently using the **YOUR_REPO_NAME**...`). If so, replace it with: `**Live site:** [YOUR_ORG_NAME.github.io/YOUR_REPO_NAME](https://YOUR_ORG_NAME.github.io/YOUR_REPO_NAME)` (resolved values)
+2. **README live site link** — **skip this step if `YOUR_REPO_NAME` is `autoupdatehtmltemplate`** (the template repo keeps the placeholder intentionally). Otherwise, check if `README.md` still contains the placeholder text (`You are currently using the **YOUR_REPO_NAME**...`). If so, replace it with: `**Live site:** [YOUR_ORG_NAME.github.io/YOUR_REPO_NAME](https://YOUR_ORG_NAME.github.io/YOUR_REPO_NAME)` (resolved values)
 3. **Unresolved placeholders** — scan for any literal `YOUR_ORG_NAME`, `YOUR_REPO_NAME`, or `YOUR_PROJECT_TITLE` strings in code files (not CLAUDE.md) and replace them with resolved values
 4. **Variable propagation** — if any value in the Template Variables table was changed (in this or a prior session), verify the new value has been propagated to every file listed in the "Where it appears" column
 5. **Confirm completion** — after all checks pass, briefly state to the user: "Session start checklist complete — no issues found" (or list what was fixed). Then proceed to their request
 
 These checks catch template drift that accumulates when the repo is cloned/forked into a new name.
 
+## Template Repo Guard
+> When `YOUR_REPO_NAME` is `autoupdatehtmltemplate` (i.e. this is the template repo itself, not a fork/clone):
+> - **Session Start Checklist item #2** is skipped — the README placeholder is intentional
+> - **Pre-Commit Checklist items #2, #3, #5, #7** are skipped unless the user explicitly requests version bumps or changelog entries — the template repo's HTML pages and documentation should not auto-increment
+> - Pre-Commit items #1 (`.gs` version bump), #4, #6, #8, #9, #10 still apply normally
+
 ## Pre-Commit Checklist
 **Before every commit, verify ALL of the following:**
 
 1. **Version bump (.gs)** — if any `.gs` file was modified, increment its `VERSION` variable by 0.01 (e.g. `"01.13g"` → `"01.14g"`)
-2. **Version bump (HTML)** — if any embedding HTML page in `live-site-pages/` was modified, increment its `<meta name="build-version">` by 0.01 (e.g. `"01.01w"` → `"01.02w"`)
-3. **Version.txt sync** — if a `build-version` was bumped, update the corresponding `<page-name>.version.txt` to the same value
+2. **Version bump (HTML)** — if any embedding HTML page in `live-site-pages/` was modified, increment its `<meta name="build-version">` by 0.01 (e.g. `"01.01w"` → `"01.02w"`). **Skip if Template Repo Guard applies (see above)**
+3. **Version.txt sync** — if a `build-version` was bumped, update the corresponding `<page-name>.version.txt` to the same value. **Skip if Template Repo Guard applies**
 4. **Template version freeze** — never bump `live-site-templates/AutoUpdateOnlyHtmlTemplate.html` — its version must always stay at `01.00w`
-5. **STATUS.md** — if any version was bumped, update the matching version in `repository-information/STATUS.md`
+5. **STATUS.md** — if any version was bumped, update the matching version in `repository-information/STATUS.md`. **Skip if Template Repo Guard applies**
 6. **ARCHITECTURE.md** — if any version was bumped or the project structure changed, update the diagram in `repository-information/ARCHITECTURE.md`
-7. **CHANGELOG.md** — every user-facing change must have an entry under `## [Unreleased]` in `repository-information/CHANGELOG.md`
+7. **CHANGELOG.md** — every user-facing change must have an entry under `## [Unreleased]` in `repository-information/CHANGELOG.md`. **Skip if Template Repo Guard applies**
 8. **README.md structure tree** — if files or directories were added, moved, or deleted, update the ASCII tree in `README.md`
 9. **Commit message format** — if versions were bumped, the commit message must start with the version prefix(es): `v{VERSION}` for `.gs`, `v{BUILD_VERSION}` for HTML (e.g. `v01.14g v01.02w Fix bug`)
 10. **Developer branding** — any newly created file must have `Developed by: ShadowAISolutions` as the last line (using the appropriate comment syntax for the file type)
