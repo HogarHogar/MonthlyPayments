@@ -29,7 +29,11 @@ demorepo4/
 │   ├── index.version.txt       # Version file for auto-refresh
 │   └── sounds/                 # Audio feedback files
 ├── autoUpdateTemplateFiles/    # Template for new pages
-├── .github/workflows/          # CI/CD pipeline
+├── .github/
+│   ├── workflows/              # CI/CD pipeline
+│   ├── ISSUE_TEMPLATE/         # Bug report & feature request forms
+│   ├── PULL_REQUEST_TEMPLATE.md # PR checklist
+│   └── FUNDING.yml             # Sponsor button config
 ├── docs/
 │   ├── ARCHITECTURE.md         # System diagram (Mermaid)
 │   ├── CHANGELOG.md            # Version history
