@@ -8,7 +8,8 @@ Version suffixes: `w` = website (HTML pages), `g` = Google Apps Script.
 ## [Unreleased]
 
 ### Added
-- First Interaction Checklist section in CLAUDE.md to prevent missed auto-detect checks
+- Session Start Checklist in CLAUDE.md (renamed from First Interaction Checklist)
+- Pre-Commit Checklist in CLAUDE.md with 10 mandatory checks for every commit
 
 ### Changed
 - Bumped `index.html` build-version from `01.00w` to `01.01w`
