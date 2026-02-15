@@ -38,6 +38,18 @@ These checks catch template drift that accumulates when the repo is cloned/forke
 > **--- END OF SESSION START CHECKLIST ---**
 ---
 
+## Initialize Command
+If the user's prompt is just **"initialize"** (after the Session Start Checklist has completed):
+1. Update the `Last updated:` timestamp in `README.md` to the real current time
+2. Commit with message `Initialize deployment`
+3. Push to the `claude/*` branch
+
+This triggers the auto-merge workflow, which merges into `main` and deploys to GitHub Pages — populating the live site for the first time. No other changes are needed.
+
+---
+> **--- END OF INITIALIZE COMMAND ---**
+---
+
 ## Template Repo Guard
 > When `YOUR_REPO_NAME` is `autoupdatehtmltemplate` (i.e. this is the template repo itself, not a fork/clone):
 > - **Session Start Checklist template drift checks are skipped** — step #1 short-circuits the numbered checklist. The "Always Run" section (branch hygiene and deployment flow) still applies every session
