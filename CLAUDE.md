@@ -11,7 +11,8 @@
 2. **README live site link** — **skip this step if `YOUR_REPO_NAME` is `autoupdatehtmltemplate`** (the template repo keeps the placeholder intentionally). Otherwise, check if `README.md` still contains the placeholder text (`You are currently using the **YOUR_REPO_NAME**...`). If so, replace it with: `**Live site:** [YOUR_ORG_NAME.github.io/YOUR_REPO_NAME](https://YOUR_ORG_NAME.github.io/YOUR_REPO_NAME)` (resolved values)
 3. **Unresolved placeholders** — scan for any literal `YOUR_ORG_NAME`, `YOUR_REPO_NAME`, or `YOUR_PROJECT_TITLE` strings in code files (not CLAUDE.md) and replace them with resolved values
 4. **Variable propagation** — if any value in the Template Variables table was changed (in this or a prior session), verify the new value has been propagated to every file listed in the "Where it appears" column
-5. **Confirm completion** — after all checks pass, briefly state to the user: "Session start checklist complete — no issues found" (or list what was fixed). Then proceed to their request
+5. **Branch hygiene** — run `git remote set-head origin main` to ensure `origin/HEAD` points to `main`. If a local `master` branch exists and points to the same commit as `origin/main`, delete it with `git branch -D master`. This prevents the auto-merge workflow from failing with exit code 128 due to branch misconfiguration
+6. **Confirm completion** — after all checks pass, briefly state to the user: "Session start checklist complete — no issues found" (or list what was fixed). Then proceed to their request
 
 These checks catch template drift that accumulates when the repo is cloned/forked into a new name.
 
