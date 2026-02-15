@@ -5,6 +5,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 Version suffixes: `w` = website (HTML pages), `g` = Google Apps Script.
 
+## [Unreleased] - 2026-02-15
+### Changed
+- Switched license from proprietary (All Rights Reserved) to MIT open source
+
 ## [v01.04w] - 2026-02-14
 ### Changed
 - Bumped index.html build-version to 01.04w
