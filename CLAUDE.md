@@ -20,7 +20,7 @@ These rules apply universally — they are **NOT** skipped by the template repo 
   2. Deletes the claude branch
   3. Deploys to GitHub Pages
 - The "Create a pull request" message in push output is just GitHub boilerplate — ignore it, the workflow handles merging automatically
-- **Batch commits before pushing** — do NOT push multiple times in rapid succession to the same `claude/*` branch. The workflow uses a shared concurrency group (`"pages"`) with `cancel-in-progress: false`, so each push queues a separate workflow run. If an earlier run merges and deletes the branch, subsequent queued runs fail with exit code 128 because the branch no longer exists. Instead, make all your commits locally first, then push once
+- **Push only once per branch** — do NOT push multiple times to the same `claude/*` branch in a single session. The workflow uses a shared concurrency group (`"pages"`) with `cancel-in-progress: false`, so each push queues a separate workflow run. If an earlier run merges and deletes the branch, subsequent queued runs fail with exit code 128 because the branch no longer exists. **This includes sequential user requests** — if the user asks for task A and then task B in the same session, commit both locally and push once after all work is done. Do NOT push after task A and then push again after task B. The only exception is if a re-push is needed to recover from a failed workflow (e.g. the branch still exists on the remote but the merge didn't happen)
 
 **Template repo short-circuit** — run `git remote -v` and extract the repo name. If it is `autoupdatehtmltemplate`, skip the Template Drift Checks below and proceed directly to the user's request.
 
