@@ -402,6 +402,26 @@ GitHub renders community health files (`CONTRIBUTING.md`, `SECURITY.md`, `CODE_O
 > **--- END OF INTERNAL LINK REFERENCE ---**
 ---
 
+## Markdown Formatting
+When editing `.md` files and you need multiple lines to render as **separate rows** (not collapsed into a single paragraph), use HTML inline elements:
+- **Line breaks:** end each line (except the last) with `<br>` to force a newline
+- **Indentation:** start each line with `&emsp;` (em space) to add a visual indent
+
+Example source:
+```markdown
+The framework handles:
+
+&emsp;First item<br>
+&emsp;Second item<br>
+&emsp;Third item
+```
+
+Plain markdown collapses consecutive indented lines into one paragraph — `<br>` and `&emsp;` are the reliable way to get separate indented rows on GitHub.
+
+---
+> **--- END OF MARKDOWN FORMATTING ---**
+---
+
 ## Relative Path Resolution on GitHub
 *Rule: see Template Drift Checks item #3. Reference details below.*
 
