@@ -87,7 +87,7 @@ This triggers the auto-merge workflow, which merges into `main` and deploys to G
 > - **All version bumps are skipped** — Pre-Commit Checklist items #1 (`.gs` version bump), #2 (HTML build-version), #3 (version.txt sync), #5 (STATUS.md), **#7 (CHANGELOG.md)**, and #9 (version prefix in commit message) are all skipped unless the user explicitly requests them. **DO NOT add CHANGELOG entries on the template repo** — the CHANGELOG must stay clean with `*(No changes yet)*` so that forks start with a blank history
 > - **GitHub Pages deployment is skipped** — the workflow's `deploy` job checks `github.event.repository.name != 'autoupdatehtmltemplate'` and won't run on the template repo
 > - **`YOUR_ORG_NAME` and `YOUR_REPO_NAME` are frozen as placeholders** — in the Template Variables table, these values must stay as `YourOrgName` and `YourRepoName` (generic placeholders). Do NOT update them to match the actual org/repo (`ShadowAISolutions`/`autoupdatehtmltemplate`). The code files throughout the repo use the real `ShadowAISolutions/autoupdatehtmltemplate` values so that links are functional. On forks, the Session Start drift checks detect the mismatch between the placeholder table values and the actual `git remote -v` values, then find and replace the template repo's real values (`ShadowAISolutions`/`autoupdatehtmltemplate`) in the listed files with the fork's actual org/repo
-> - Pre-Commit items #4, #6, #8, #10, #11, #12 still apply normally
+> - Pre-Commit items #0, #4, #6, #8, #10, #11, #12 still apply normally
 
 ---
 > **--- END OF TEMPLATE REPO GUARD ---**
@@ -96,6 +96,7 @@ This triggers the auto-merge workflow, which merges into `main` and deploys to G
 ## Pre-Commit Checklist
 **Before every commit, verify ALL of the following:**
 
+0. **Commit belongs to this repo and task** — before staging or committing ANY changes, verify: (a) `git remote -v` still matches the repo you are working on — if it doesn't, STOP and do not commit; (b) every file being staged was modified by THIS session's task, not inherited from a prior session or a different repo; (c) the commit message describes work you actually performed in this session — never commit with a message copied from a prior session's commit. If any of these checks fail, discard the stale changes and proceed only with the user's current request. **This item is never skipped** — it applies on every repo including the template repo
 1. **Version bump (.gs)** — if any `.gs` file was modified, increment its `VERSION` variable by 0.01 (e.g. `"01.13g"` → `"01.14g"`)
 2. **Version bump (HTML)** — if any embedding HTML page in `live-site-pages/` was modified, increment its `<meta name="build-version">` by 0.01 (e.g. `"01.01w"` → `"01.02w"`). **Skip if Template Repo Guard applies (see above)**
 3. **Version.txt sync** — if a `build-version` was bumped, update the corresponding `<page-name>.version.txt` to the same value. **Skip if Template Repo Guard applies**
