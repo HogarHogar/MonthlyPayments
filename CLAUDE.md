@@ -10,6 +10,8 @@
 ### Always Run (every repo, every session — NEVER skip)
 These rules apply universally — they are **NOT** skipped by the template repo short-circuit.
 
+**Repo identity guard** — run `git remote -v` and extract the full `org/repo` identity (e.g. `github.com/MyOrg/my-project` → `MyOrg/my-project`). Compare this against any repo-specific references carried over in the session context — branch names (e.g. `claude/...`), commit SHAs, remote URLs, or org/repo identifiers from prior instructions. If the current repo's `org/repo` does **not** match references from prior session context, those references are stale cross-repo contamination — **discard all prior commit, push, and branch instructions entirely** and act only on the user's explicit current request. Do NOT replay commits, cherry-pick changes, push to branches, or continue work that originated in a different repo. This check prevents cross-repo commit contamination when a session spawned on a fork/copy inherits stale context from a prior session on the source repo.
+
 **Branch hygiene** — run `git remote set-head origin main` to ensure `origin/HEAD` points to `main`. If a local `master` branch exists and points to the same commit as `origin/main`, delete it with `git branch -D master`. This prevents the auto-merge workflow from failing with exit code 128 due to branch misconfiguration.
 
 **Deployment Flow**
