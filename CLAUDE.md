@@ -43,9 +43,6 @@
 | `📝📝SUMMARY📝📝` | Changes were made in the response | Last section before CODING_COMPLETE |
 | `✅✅CODING_COMPLETE✅✅` | All work done | Always the very last line of response |
 
-### Ordering principle
-The table and bullet-point rules above are ordered by **the chronological flow as the user experiences it** — not by which internal response turn each marker belongs to. AWAITING_HOOK and HOOK_FEEDBACK may technically span two response turns, but the user experiences them as consecutive events that happen *before* the final summary and CODING_COMPLETE. When reordering or adding bookends, always ask: "in what order does the user see these?" — never reason from response-turn boundaries.
-
 ### Flow Examples
 
 **Normal flow (no hook):**
@@ -465,6 +462,16 @@ When a new embedding page is created (see New Embedding Page Setup Checklist), a
 
 ---
 > **--- END OF PUSHBACK & REASONING ---**
+---
+
+## User-Perspective Reasoning
+- When organizing, ordering, or explaining anything in this repo, **always reason from the user's perspective** — how they experience the flow, read the output, or understand the structure. Never reason from internal implementation details (response-turn boundaries, tool-call mechanics, API round-trips) when the user-facing view tells a different story
+- The trap: internal mechanics can suggest one ordering/grouping, while the user's actual experience suggests another. When these conflict, the user's experience wins every time
+- Before finalizing any structural decision (ordering lists, grouping related items, naming things), ask: "does this match what the user sees and expects?" If the answer requires knowing implementation details to make sense, the structure is wrong
+- **Example — bookend ordering:** the Bookend Summary table is ordered by the chronological flow as the user experiences it. AWAITING_HOOK and HOOK_FEEDBACK may technically span two response turns, but the user sees them as consecutive events before the final summary. The end-of-response sections (AGENTS_USED through SUMMARY) always come last before CODING_COMPLETE because that's the user's experience — the wrap-up happens once, at the very end, after all work including hook resolution is done
+
+---
+> **--- END OF USER-PERSPECTIVE REASONING ---**
 ---
 
 ## Agent Attribution
