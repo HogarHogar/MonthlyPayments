@@ -1,14 +1,14 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
-title: "autoupdatehtmltemplate"
+title: "MonthlyPayments"
 abstract: "A GitHub Pages deployment framework with automatic version polling, auto-refresh, and Google Apps Script embedding support."
 authors:
-  - name: "ShadowAISolutions"
+  - name: "HogarHogar"
 type: software
 license: "All Rights Reserved"
-repository-code: "https://github.com/ShadowAISolutions/autoupdatehtmltemplate"
-url: "https://ShadowAISolutions.github.io/autoupdatehtmltemplate"
-# Developed by: ShadowAISolutions
+repository-code: "https://github.com/HogarHogar/MonthlyPayments"
+url: "https://HogarHogar.github.io/MonthlyPayments"
+# Developed by: HogarHogar
 
 
 

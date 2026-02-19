@@ -181,5 +181,5 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 
-# Developed by: ShadowAISolutions
+# Developed by: HogarHogar
 
