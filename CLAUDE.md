@@ -503,7 +503,7 @@ When a new embedding page is created (see New Embedding Page Setup Checklist), a
 - For clear, straightforward requests: **just do it** — make the changes, commit, and push without asking for plan approval
 - Only ask clarifying questions when the request is genuinely ambiguous or has multiple valid interpretations
 - Do not use formal plan-mode approval workflows for routine tasks (version bumps, file moves, feature additions, bug fixes, etc.)
-- **Large file writes** — when creating or rewriting a file >200 lines, prefer building it incrementally (multiple Edit calls or Write in chunks) over a single massive Write. A single large Write tool call can take 30-60+ seconds of wall-clock time during which no visible progress appears to the user, creating the impression of a stall. If a full-file Write is unavoidable, output a brief status message before the Write call (e.g. "Writing ~1200-line file, this will take a moment...") so the user knows work is in progress
+- **Large file writes** — when creating a new file >500 lines, a single Write tool call can take 30-60+ seconds of wall-clock time during which no visible progress appears to the user, creating the impression of a stall. To mitigate this: (1) **always** output a brief status message before the Write call (e.g. "Writing ~1200-line file, this will take a moment...") so the user knows work is in progress, and (2) when practical, Write a smaller skeleton first then use Edit calls to fill in sections — but do not force this if a single Write is simpler and less error-prone. For existing files this is a non-issue — Edit calls are already incremental by nature
 
 ---
 > **--- END OF EXECUTION STYLE ---**
