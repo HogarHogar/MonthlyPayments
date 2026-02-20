@@ -1,0 +1,895 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="build-version" content="01.01w">
+  <meta name="template-id" content="sais-aut-7f3e9b2d">
+  <title>Monthly Payments - Reconciliation</title>
+  <style>
+    html, body { margin: 0; padding: 0; height: 100%; }
+    .splash {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      z-index: 10000; display: none; align-items: center; justify-content: center;
+      flex-direction: column; transition: opacity 0.3s ease;
+    }
+    .splash .splash-title { color: #fff; font: bold 36px/1 sans-serif; margin-bottom: 20px; }
+    .splash img { max-width: 500px; max-height: 500px; }
+    #splash-green { background: #1b5e20; }
+    #version-indicator {
+      position: fixed; bottom: 8px; right: 8px; z-index: 9999;
+      display: flex; align-items: center; gap: 6px;
+      background: rgba(0,0,0,0.55); color: #ccc; padding: 4px 10px;
+      border-radius: 12px; font: 11px/1 monospace; user-select: none;
+      pointer-events: none; transition: all 0.3s ease;
+    }
+    #version-indicator .dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #888; transition: background 0.3s ease;
+    }
+    #version-indicator .dot.checking { background: #ffa726; animation: pulse 0.6s infinite alternate; }
+    #version-indicator .dot.found    { background: #66bb6a; }
+    #version-indicator .dot.error    { background: #ef5350; }
+    @keyframes pulse { from { opacity: 1; } to { opacity: 0.4; } }
+ 
+    /* ── APP STYLES ────────────────────────────────────────── */
+    * { box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f0f2f5; color: #1a1a2e; }
+ 
+    .app-header {
+      background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
+      color: #fff; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between;
+    }
+    .app-header h1 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: 0.5px; }
+    .app-header .month-badge {
+      background: rgba(255,255,255,0.15); padding: 6px 14px; border-radius: 20px; font-size: 13px;
+    }
+ 
+    .tab-bar {
+      display: flex; background: #fff; border-bottom: 2px solid #e0e0e0;
+      padding: 0 16px; overflow-x: auto;
+    }
+    .tab-btn {
+      padding: 12px 20px; border: none; background: none; cursor: pointer;
+      font-size: 14px; font-weight: 500; color: #666; position: relative;
+      white-space: nowrap; transition: color 0.2s;
+    }
+    .tab-btn:hover { color: #1a237e; }
+    .tab-btn.active { color: #1a237e; }
+    .tab-btn.active::after {
+      content: ''; position: absolute; bottom: -2px; left: 0; right: 0;
+      height: 3px; background: #1a237e; border-radius: 3px 3px 0 0;
+    }
+ 
+    .tab-content { display: none; padding: 20px 24px; max-width: 1200px; margin: 0 auto; }
+    .tab-content.active { display: block; }
+ 
+    .card {
+      background: #fff; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      padding: 20px; margin-bottom: 20px;
+    }
+    .card h2 { margin: 0 0 16px; font-size: 16px; color: #1a237e; border-bottom: 1px solid #eee; padding-bottom: 8px; }
+    .card h3 { margin: 0 0 12px; font-size: 14px; color: #444; }
+ 
+    .form-row { display: flex; gap: 16px; margin-bottom: 14px; flex-wrap: wrap; }
+    .form-group { display: flex; flex-direction: column; flex: 1; min-width: 180px; }
+    .form-group label { font-size: 12px; font-weight: 600; color: #555; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .form-group input, .form-group select, .form-group textarea {
+      padding: 8px 12px; border: 1px solid #d0d0d0; border-radius: 6px; font-size: 14px;
+      transition: border-color 0.2s;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+      outline: none; border-color: #1a237e; box-shadow: 0 0 0 2px rgba(26,35,126,0.1);
+    }
+    .form-group input[type="number"] { font-variant-numeric: tabular-nums; }
+ 
+    .btn {
+      padding: 10px 20px; border: none; border-radius: 6px; font-size: 14px; font-weight: 600;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .btn-primary { background: #1a237e; color: #fff; }
+    .btn-primary:hover { background: #283593; }
+    .btn-secondary { background: #e8eaf6; color: #1a237e; }
+    .btn-secondary:hover { background: #c5cae9; }
+    .btn-danger { background: #ffebee; color: #c62828; }
+    .btn-danger:hover { background: #ffcdd2; }
+    .btn-sm { padding: 6px 12px; font-size: 12px; }
+ 
+    .btn-row { display: flex; gap: 10px; margin-top: 16px; }
+ 
+    /* Tables */
+    .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .data-table th {
+      background: #e8eaf6; color: #1a237e; text-align: left; padding: 10px 12px;
+      font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;
+      position: sticky; top: 0;
+    }
+    .data-table td { padding: 8px 12px; border-bottom: 1px solid #f0f0f0; }
+    .data-table tr:hover { background: #fafafa; }
+    .data-table .amount { text-align: right; font-variant-numeric: tabular-nums; }
+    .data-table .amount.negative { color: #c62828; }
+    .data-table .amount.positive { color: #2e7d32; }
+    .data-table input {
+      width: 100%; padding: 4px 8px; border: 1px solid #e0e0e0; border-radius: 4px;
+      font-size: 13px; background: #fafafa;
+    }
+    .data-table input:focus { background: #fff; border-color: #1a237e; outline: none; }
+ 
+    .total-row { background: #e8eaf6 !important; font-weight: 700; }
+    .total-row td { border-top: 2px solid #1a237e; }
+ 
+    /* Summary report */
+    .report-header { text-align: center; margin-bottom: 24px; }
+    .report-header h2 { font-size: 20px; color: #1a237e; margin: 0 0 4px; }
+    .report-header p { margin: 2px 0; color: #666; font-size: 14px; }
+ 
+    .reconcile-section { margin-bottom: 20px; }
+    .reconcile-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
+    .reconcile-row.indent { padding-left: 24px; }
+    .reconcile-row.bold { font-weight: 700; border-bottom: 2px solid #1a237e; }
+    .reconcile-row .label { color: #444; }
+    .reconcile-row .value { font-variant-numeric: tabular-nums; font-weight: 600; }
+    .reconcile-row .value.match { color: #2e7d32; }
+    .reconcile-row .value.mismatch { color: #c62828; }
+ 
+    /* Dashboard / Spreadsheet */
+    .dashboard-grid { overflow-x: auto; }
+    .dashboard-table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 1100px; }
+    .dashboard-table th {
+      background: #1a237e; color: #fff; padding: 10px 8px; text-align: center;
+      font-weight: 600; font-size: 11px; text-transform: uppercase; position: sticky; top: 0;
+    }
+    .dashboard-table th:first-child, .dashboard-table th:nth-child(2),
+    .dashboard-table th:nth-child(3) { text-align: left; }
+    .dashboard-table td { padding: 8px; border: 1px solid #e0e0e0; text-align: center; }
+    .dashboard-table td:first-child, .dashboard-table td:nth-child(2),
+    .dashboard-table td:nth-child(3) { text-align: left; }
+    .dashboard-table tr:nth-child(even) { background: #f8f9fc; }
+    .dashboard-table .status-done { background: #e8f5e9; color: #2e7d32; font-weight: 600; border-radius: 4px; }
+    .dashboard-table .status-pending { background: #fff3e0; color: #e65100; font-weight: 600; border-radius: 4px; }
+    .dashboard-table .status-empty { color: #bbb; }
+    .dashboard-table .folder-icon { cursor: pointer; font-size: 16px; }
+    .dashboard-table .link-icon { color: #1a237e; text-decoration: none; font-size: 14px; }
+ 
+    .add-row-btn { margin-top: 10px; }
+ 
+    /* Account type badges */
+    .acct-badge {
+      display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600;
+    }
+    .acct-badge.deposit { background: #e8f5e9; color: #2e7d32; }
+    .acct-badge.loan { background: #fce4ec; color: #c62828; }
+    .acct-badge.share { background: #e3f2fd; color: #1565c0; }
+ 
+    /* Responsive */
+    @media (max-width: 768px) {
+      .form-row { flex-direction: column; }
+      .form-group { min-width: 100%; }
+      .tab-btn { padding: 10px 14px; font-size: 13px; }
+      .tab-content { padding: 14px; }
+    }
+ 
+    /* Paste area */
+    .paste-area {
+      width: 100%; min-height: 120px; padding: 12px; border: 2px dashed #d0d0d0; border-radius: 8px;
+      font-family: 'Courier New', monospace; font-size: 13px; resize: vertical; background: #fafafa;
+    }
+    .paste-area:focus { border-color: #1a237e; background: #fff; outline: none; }
+ 
+    .or-divider {
+      text-align: center; color: #999; font-size: 13px; margin: 16px 0; position: relative;
+    }
+    .or-divider::before, .or-divider::after {
+      content: ''; position: absolute; top: 50%; width: 40%; height: 1px; background: #ddd;
+    }
+    .or-divider::before { left: 0; }
+    .or-divider::after { right: 0; }
+ 
+    .empty-state { text-align: center; padding: 40px 20px; color: #999; }
+    .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+    .empty-state p { margin: 4px 0; }
+  </style>
+</head>
+<body>
+  <div id="splash-green" class="splash"><div class="splash-title">Website Ready</div><img id="splash-logo" src="" alt=""></div>
+ 
+  <!-- ── APP ────────────────────────────────────────────── -->
+  <header class="app-header">
+    <h1>Monthly Reconciliation</h1>
+    <div class="month-badge" id="currentMonth"></div>
+  </header>
+ 
+  <nav class="tab-bar">
+    <button class="tab-btn active" data-tab="tab-statement">Bank Statement</button>
+    <button class="tab-btn" data-tab="tab-detail">Part 1: Detailed Reconciliation</button>
+    <button class="tab-btn" data-tab="tab-summary">Part 2: Summary</button>
+    <button class="tab-btn" data-tab="tab-dashboard">Monthly Dashboard</button>
+  </nav>
+ 
+  <!-- ─── TAB 1: BANK STATEMENT INPUT ──────────────────── -->
+  <div id="tab-statement" class="tab-content active">
+    <div class="card">
+      <h2>Account Information</h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Account Type</label>
+          <select id="accountType">
+            <option value="deposit">Deposit Account</option>
+            <option value="loan">Loan Account</option>
+            <option value="share">Primary Share</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Account Number</label>
+          <input type="text" id="accountNumber" placeholder="e.g. ****1234">
+        </div>
+        <div class="form-group">
+          <label>Bank Name</label>
+          <input type="text" id="bankName" placeholder="e.g. Chase, Wells Fargo">
+        </div>
+        <div class="form-group">
+          <label>Statement Month</label>
+          <input type="month" id="statementMonth">
+        </div>
+      </div>
+    </div>
+ 
+    <div class="card">
+      <h2>Statement Balances</h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Previous Balance ($)</label>
+          <input type="number" id="prevBalance" step="0.01" placeholder="0.00">
+        </div>
+        <div class="form-group">
+          <label>Total Deposits ($)</label>
+          <input type="number" id="totalDeposits" step="0.01" placeholder="0.00">
+        </div>
+        <div class="form-group">
+          <label>Total Withdrawals ($)</label>
+          <input type="number" id="totalWithdrawals" step="0.01" placeholder="0.00">
+        </div>
+        <div class="form-group">
+          <label>Ending Balance ($)</label>
+          <input type="number" id="endingBalance" step="0.01" placeholder="0.00">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group" style="max-width: 220px;">
+          <label>Advances ($)</label>
+          <input type="number" id="advances" step="0.01" placeholder="0.00">
+        </div>
+      </div>
+    </div>
+ 
+    <div class="card">
+      <h2>Transaction Entry</h2>
+      <p style="color:#666; font-size:13px; margin:0 0 12px;">Paste your bank statement transactions below, or add them manually.</p>
+ 
+      <div class="form-group" style="margin-bottom: 12px;">
+        <label>Paste Bank Statement Text</label>
+        <textarea class="paste-area" id="pasteArea" placeholder="Paste bank statement text here...&#10;&#10;Expected format (one per line):&#10;01/15  DIRECT DEPOSIT PAYROLL  1,500.00&#10;01/16  DEBIT CARD PURCHASE GROCERY  -45.67&#10;01/18  CHECK #1234  -200.00"></textarea>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="parsePastedText()">Parse Pasted Text</button>
+      </div>
+ 
+      <div class="or-divider">or add manually</div>
+ 
+      <div style="overflow-x: auto;">
+        <table class="data-table" id="transactionTable">
+          <thead>
+            <tr>
+              <th style="width:110px;">Date</th>
+              <th>Description</th>
+              <th style="width:120px;">Amount ($)</th>
+              <th style="width:100px;">Type</th>
+              <th style="width:50px;"></th>
+            </tr>
+          </thead>
+          <tbody id="transactionBody">
+          </tbody>
+        </table>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-secondary btn-sm" onclick="addTransactionRow()">+ Add Row</button>
+        <button class="btn btn-danger btn-sm" onclick="clearTransactions()">Clear All</button>
+      </div>
+    </div>
+ 
+    <div class="btn-row" style="justify-content: flex-end;">
+      <button class="btn btn-primary" onclick="generateReconciliation()">Generate Reconciliation &rarr;</button>
+    </div>
+  </div>
+ 
+  <!-- ─── TAB 2: DETAILED RECONCILIATION ──────────────── -->
+  <div id="tab-detail" class="tab-content">
+    <div class="card">
+      <h2>Part 1: Detailed Reconciliation from Bank Statement</h2>
+      <div id="detailEmpty" class="empty-state">
+        <div class="icon">&#128196;</div>
+        <p><strong>No transactions yet</strong></p>
+        <p>Enter your bank statement in the first tab, then click "Generate Reconciliation"</p>
+      </div>
+      <div id="detailContent" style="display:none; overflow-x:auto;">
+        <table class="data-table" id="detailTable">
+          <thead>
+            <tr>
+              <th style="width:90px;">Date</th>
+              <th>Description</th>
+              <th style="width:110px;">Amount</th>
+              <th style="width:110px;">Transfer</th>
+              <th style="width:110px;">Deposit</th>
+              <th style="width:120px;">Running Total</th>
+            </tr>
+          </thead>
+          <tbody id="detailBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+ 
+  <!-- ─── TAB 3: RECONCILIATION SUMMARY ───────────────── -->
+  <div id="tab-summary" class="tab-content">
+    <div class="card">
+      <div class="report-header">
+        <h2>Bank Reconciliation</h2>
+        <p id="summClientName">Client: —</p>
+        <p id="summBankName">Bank: —</p>
+        <p id="summMonth">Month of: —</p>
+        <p id="summAcctNum">Account #: —</p>
+      </div>
+ 
+      <div class="card" style="background:#f8f9fc;">
+        <h3>Manual Fields (not on bank statement)</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Client Name</label>
+            <input type="text" id="clientName" placeholder="Your name or business">
+          </div>
+          <div class="form-group">
+            <label>General Ledger Account Balance ($)</label>
+            <input type="number" id="glBalance" step="0.01" placeholder="0.00" oninput="updateSummary()">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Bank Fees ($)</label>
+            <input type="number" id="bankFees" step="0.01" value="0" oninput="updateSummary()">
+          </div>
+          <div class="form-group">
+            <label>Interest Earned ($)</label>
+            <input type="number" id="interestEarned" step="0.01" value="0" oninput="updateSummary()">
+          </div>
+          <div class="form-group">
+            <label>Other Adjustments ($)</label>
+            <input type="number" id="otherAdj" step="0.01" value="0" oninput="updateSummary()">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Deposits in Transit ($)</label>
+            <input type="number" id="depositsInTransit" step="0.01" value="0" oninput="updateSummary()">
+          </div>
+          <div class="form-group">
+            <label>Outstanding Checks ($)</label>
+            <input type="number" id="outstandingChecks" step="0.01" value="0" oninput="updateSummary()">
+          </div>
+          <div class="form-group">
+            <label>NSF Checks ($)</label>
+            <input type="number" id="nsfChecks" step="0.01" value="0" oninput="updateSummary()">
+          </div>
+        </div>
+      </div>
+ 
+      <div class="reconcile-section">
+        <h3 style="color:#1a237e; margin-bottom: 12px;">Bank Side</h3>
+        <div class="reconcile-row">
+          <span class="label">Balance per Bank Statement</span>
+          <span class="value" id="summBankBal">$0.00</span>
+        </div>
+        <div class="reconcile-row indent">
+          <span class="label">+ Deposits in Transit</span>
+          <span class="value" id="summDepTransit">$0.00</span>
+        </div>
+        <div class="reconcile-row indent">
+          <span class="label">- Outstanding Checks</span>
+          <span class="value" id="summOutChecks">$0.00</span>
+        </div>
+        <div class="reconcile-row bold">
+          <span class="label">Adjusted Bank Balance</span>
+          <span class="value" id="summAdjBank">$0.00</span>
+        </div>
+      </div>
+ 
+      <div class="reconcile-section">
+        <h3 style="color:#1a237e; margin-bottom: 12px;">Book Side</h3>
+        <div class="reconcile-row">
+          <span class="label">General Ledger Account Balance</span>
+          <span class="value" id="summGLBal">$0.00</span>
+        </div>
+        <div class="reconcile-row indent">
+          <span class="label">- Bank Fees</span>
+          <span class="value" id="summFees">$0.00</span>
+        </div>
+        <div class="reconcile-row indent">
+          <span class="label">+ Interest Earned</span>
+          <span class="value" id="summInterest">$0.00</span>
+        </div>
+        <div class="reconcile-row indent">
+          <span class="label">- NSF Checks</span>
+          <span class="value" id="summNSF">$0.00</span>
+        </div>
+        <div class="reconcile-row indent">
+          <span class="label">+/- Other Adjustments</span>
+          <span class="value" id="summOther">$0.00</span>
+        </div>
+        <div class="reconcile-row bold">
+          <span class="label">Adjusted Book Balance</span>
+          <span class="value" id="summAdjBook">$0.00</span>
+        </div>
+      </div>
+ 
+      <div class="reconcile-section" style="margin-top: 24px; padding: 16px; border-radius: 8px;" id="diffSection">
+        <div class="reconcile-row bold" style="border: none;">
+          <span class="label" style="font-size: 16px;">Difference</span>
+          <span class="value" id="summDiff" style="font-size: 18px;">$0.00</span>
+        </div>
+      </div>
+    </div>
+  </div>
+ 
+  <!-- ─── TAB 4: MONTHLY DASHBOARD ────────────────────── -->
+  <div id="tab-dashboard" class="tab-content">
+    <div class="card">
+      <h2>Monthly Dashboard — All Accounts</h2>
+      <div class="dashboard-grid">
+        <table class="dashboard-table" id="dashboardTable">
+          <thead>
+            <tr>
+              <th style="width:160px;">Account</th>
+              <th style="width:40px;">&#128193;</th>
+              <th style="width:40px;">&#128279;</th>
+              <th style="width:70px;">Due</th>
+              <th>Jan</th><th>Feb</th><th>Mar</th><th>Apr</th><th>May</th><th>Jun</th>
+              <th>Jul</th><th>Aug</th><th>Sep</th><th>Oct</th><th>Nov</th><th>Dec</th>
+            </tr>
+          </thead>
+          <tbody id="dashboardBody">
+          </tbody>
+        </table>
+      </div>
+      <div class="btn-row add-row-btn">
+        <button class="btn btn-secondary btn-sm" onclick="addDashboardRow()">+ Add Account</button>
+      </div>
+    </div>
+  </div>
+ 
+  <!-- ── TEMPLATE JS ───────────────────────────────────── -->
+  <script>
+    /* tpl:7f3e9b2d */ // ── CONFIG ──────────────────────────────────────────────────────────
+    var DEVELOPER_LOGO_URL = 'https://www.shadowaisolutions.com/SAIS%20Logo.png';
+    var YOUR_ORG_LOGO_URL = 'https://logoipsum.com/logoipsum-avatar.png';
+    var LOGO_URL = DEVELOPER_LOGO_URL;
+    var AUTO_REFRESH = true;
+    var SHOW_WEB_VERSION = true;
+    // ────────────────────────────────────────────────────────────────────
+ 
+    document.getElementById('splash-logo').src = LOGO_URL;
+ 
+    var _navEntries = performance.getEntriesByType('navigation');
+    var _navType = _navEntries.length ? _navEntries[0].type : 'navigate';
+    if (_navType !== 'reload') {
+      sessionStorage.removeItem('audio-unlocked');
+    }
+ 
+    var _audioCtx = null;
+    try { _audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+    if (_audioCtx) _audioCtx.onstatechange = function() { updateAudioStatus(); };
+    var _resumePromise = null;
+    if (_audioCtx && _audioCtx.state === 'suspended') _resumePromise = _audioCtx.resume().catch(function() {});
+ 
+    function updateAudioStatus() {
+      var el = document.getElementById('audio-status');
+      if (!el) return;
+      if (_audioCtx && _audioCtx.state === 'running') {
+        el.textContent = '\u{1F50A}'; el.title = 'Sound ready';
+        sessionStorage.setItem('audio-unlocked', '1');
+      } else if (sessionStorage.getItem('audio-unlocked')) {
+        el.textContent = '\u{1F50A}'; el.title = 'Sound ready';
+      } else {
+        el.textContent = '\u{1F507}'; el.title = 'Sound muted - click page to enable';
+      }
+    }
+ 
+    function unlockAudio() {
+      if (!_audioCtx || _audioCtx.state === 'running') return;
+      _audioCtx.resume().then(function() { updateAudioStatus(); }).catch(function() {});
+    }
+    document.addEventListener('click', unlockAudio, { once: false });
+    document.addEventListener('touchstart', unlockAudio, { once: false });
+ 
+    function playSoundFromDataUrl(dataUrl) {
+      try {
+        var ctx = _audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+        if (ctx.state !== 'running') return;
+        var base64 = dataUrl.split(',')[1];
+        var binary = atob(base64);
+        var bytes = new Uint8Array(binary.length);
+        for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+        ctx.decodeAudioData(bytes.buffer, function(audioBuffer) {
+          var source = ctx.createBufferSource();
+          source.buffer = audioBuffer;
+          source.connect(ctx.destination);
+          source.start(0);
+        });
+      } catch(e) {}
+    }
+ 
+    function cacheSound(url, key) {
+      if (localStorage.getItem(key)) return;
+      fetch(url).then(function(res) { return res.blob(); }).then(function(blob) {
+        var reader = new FileReader();
+        reader.onloadend = function() { localStorage.setItem(key, reader.result); };
+        reader.readAsDataURL(blob);
+      }).catch(function() {});
+    }
+    cacheSound('sounds/Website_Ready_Voice_1.mp3', 'web-sound-data');
+ 
+    var _soundPlayed = false;
+    if (sessionStorage.getItem('web-pending-sound')) {
+      sessionStorage.removeItem('web-pending-sound');
+      if (navigator.vibrate) navigator.vibrate(200);
+      var splash = document.getElementById('splash-green');
+      if (_audioCtx && !_soundPlayed) {
+        _soundPlayed = true;
+        var _playNow = function() {
+          var soundData = localStorage.getItem('web-sound-data');
+          if (soundData) { playSoundFromDataUrl(soundData); }
+          else { var a = new Audio('sounds/Website_Ready_Voice_1.mp3'); a.play().catch(function() {}); }
+        };
+        if (_audioCtx.state === 'running') {
+          _playNow();
+        } else if (_resumePromise) {
+          _resumePromise.then(function() { if (_audioCtx.state === 'running') _playNow(); });
+        }
+      }
+      if (splash) {
+        splash.style.display = 'flex';
+        setTimeout(function() {
+          splash.style.opacity = '0';
+          setTimeout(function() { splash.style.display = 'none'; }, 300);
+        }, 1000);
+      }
+    }
+ 
+    (function() {
+      var POLL_INTERVAL = 10000;
+      var currentVersion = (document.querySelector('meta[name="build-version"]') || {}).content;
+      if (!currentVersion) return;
+      if (!AUTO_REFRESH) return;
+      var indicator = document.createElement('div');
+      indicator.id = 'version-indicator';
+      indicator.innerHTML = '<span class="dot"></span><span class="label">v' + currentVersion + '</span><span id="audio-status"></span>';
+      if (SHOW_WEB_VERSION) document.body.appendChild(indicator);
+      updateAudioStatus();
+      if (_resumePromise) _resumePromise.then(function() { updateAudioStatus(); });
+      var dot = indicator.querySelector('.dot');
+      var basePath = window.location.href.split('?')[0].split('#')[0];
+      var pageName = basePath.substring(basePath.lastIndexOf('/') + 1).replace('.html', '');
+      if (!pageName) pageName = 'index';
+      var versionUrl = basePath.substring(0, basePath.lastIndexOf('/') + 1) + pageName + '.version.txt';
+      function checkForUpdate() {
+        dot.className = 'dot checking';
+        fetch(versionUrl + '?_cb=' + Date.now(), { cache: 'no-store' })
+          .then(function(res) { return res.text(); })
+          .then(function(v) {
+            var remoteVersion = v.trim();
+            if (remoteVersion && remoteVersion !== currentVersion) {
+              dot.className = 'dot found';
+              indicator.querySelector('.label').textContent = 'Updating...';
+              sessionStorage.setItem('web-pending-sound', '1');
+              setTimeout(function() { window.location.reload(); }, 2000);
+            } else {
+              setTimeout(function() { dot.className = 'dot'; }, 800);
+              setTimeout(checkForUpdate, POLL_INTERVAL);
+            }
+          })
+          .catch(function() {
+            dot.className = 'dot error';
+            setTimeout(function() { dot.className = 'dot'; }, 2000);
+            setTimeout(checkForUpdate, POLL_INTERVAL);
+          });
+      }
+      setTimeout(checkForUpdate, POLL_INTERVAL);
+    })();
+ 
+    var _wakeLock = null;
+    async function requestWakeLock() {
+      try {
+        if (navigator.wakeLock) {
+          _wakeLock = await navigator.wakeLock.request('screen');
+          _wakeLock.addEventListener('release', function() { _wakeLock = null; });
+        }
+      } catch(e) {}
+    }
+    requestWakeLock();
+    document.addEventListener('visibilitychange', function() {
+      if (document.visibilityState === 'visible') requestWakeLock();
+    });
+  </script>
+ 
+  <!-- ── APP JS ────────────────────────────────────────── -->
+  <script>
+    // ── Tab Navigation ───────────────────────────────────
+    document.querySelectorAll('.tab-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+        document.querySelectorAll('.tab-content').forEach(function(c) { c.classList.remove('active'); });
+        btn.classList.add('active');
+        document.getElementById(btn.dataset.tab).classList.add('active');
+      });
+    });
+ 
+    // Set current month badge
+    var now = new Date();
+    var monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    document.getElementById('currentMonth').textContent = monthNames[now.getMonth()] + ' ' + now.getFullYear();
+    document.getElementById('statementMonth').value = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+ 
+    // ── Helper: format money ─────────────────────────────
+    function fmt(n) {
+      var v = parseFloat(n) || 0;
+      return (v < 0 ? '-' : '') + '$' + Math.abs(v).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    }
+ 
+    function parseNum(id) { return parseFloat(document.getElementById(id).value) || 0; }
+ 
+    // ── Transaction Rows ─────────────────────────────────
+    var txnCounter = 0;
+ 
+    function addTransactionRow(date, desc, amount) {
+      txnCounter++;
+      var tbody = document.getElementById('transactionBody');
+      var tr = document.createElement('tr');
+      var d = date || '';
+      var ds = desc || '';
+      var a = amount !== undefined ? amount : '';
+      var typeVal = (parseFloat(a) || 0) >= 0 ? 'deposit' : 'withdrawal';
+      tr.innerHTML =
+        '<td><input type="date" value="' + d + '"></td>' +
+        '<td><input type="text" value="' + ds.replace(/"/g, '&quot;') + '" placeholder="Description"></td>' +
+        '<td><input type="number" step="0.01" value="' + a + '" placeholder="0.00"></td>' +
+        '<td><select><option value="deposit"' + (typeVal === 'deposit' ? ' selected' : '') + '>Deposit</option><option value="withdrawal"' + (typeVal === 'withdrawal' ? ' selected' : '') + '>Withdrawal</option><option value="transfer">Transfer</option></select></td>' +
+        '<td><button class="btn btn-danger btn-sm" onclick="this.closest(\'tr\').remove()" title="Remove">&times;</button></td>';
+      tbody.appendChild(tr);
+    }
+ 
+    // Start with 3 empty rows
+    addTransactionRow(); addTransactionRow(); addTransactionRow();
+ 
+    function clearTransactions() {
+      document.getElementById('transactionBody').innerHTML = '';
+      txnCounter = 0;
+      addTransactionRow(); addTransactionRow(); addTransactionRow();
+    }
+ 
+    // ── Parse Pasted Text ────────────────────────────────
+    function parsePastedText() {
+      var text = document.getElementById('pasteArea').value.trim();
+      if (!text) return;
+ 
+      var lines = text.split('\n').filter(function(l) { return l.trim(); });
+      document.getElementById('transactionBody').innerHTML = '';
+      txnCounter = 0;
+ 
+      lines.forEach(function(line) {
+        line = line.trim();
+        // Try to extract: date, description, amount
+        // Common formats: "01/15  DESCRIPTION  1,500.00" or "01/15/2026  DESCRIPTION  -45.67"
+        var match = line.match(/^(\d{1,2}[\/\-]\d{1,2}(?:[\/\-]\d{2,4})?)\s+(.+?)\s+([\-]?\$?[\d,]+\.?\d*)$/);
+        if (match) {
+          var rawDate = match[1];
+          var desc = match[2].trim();
+          var amt = match[3].replace(/[$,]/g, '');
+          // Convert MM/DD or MM/DD/YYYY to YYYY-MM-DD for date input
+          var parts = rawDate.split(/[\/\-]/);
+          var year = now.getFullYear();
+          if (parts.length === 3 && parts[2].length === 4) year = parseInt(parts[2]);
+          else if (parts.length === 3 && parts[2].length === 2) year = 2000 + parseInt(parts[2]);
+          var isoDate = year + '-' + parts[0].padStart(2, '0') + '-' + parts[1].padStart(2, '0');
+          addTransactionRow(isoDate, desc, amt);
+        } else {
+          // Can't parse — add as description only
+          addTransactionRow('', line, '');
+        }
+      });
+ 
+      if (txnCounter === 0) {
+        addTransactionRow(); addTransactionRow(); addTransactionRow();
+      }
+    }
+ 
+    // ── Generate Reconciliation ──────────────────────────
+    function generateReconciliation() {
+      var rows = document.getElementById('transactionBody').querySelectorAll('tr');
+      var transactions = [];
+      rows.forEach(function(tr) {
+        var inputs = tr.querySelectorAll('input');
+        var select = tr.querySelector('select');
+        var date = inputs[0].value;
+        var desc = inputs[1].value;
+        var amount = parseFloat(inputs[2].value) || 0;
+        var type = select.value;
+        if (desc || amount) {
+          transactions.push({ date: date, desc: desc, amount: amount, type: type });
+        }
+      });
+ 
+      if (transactions.length === 0) return;
+ 
+      // Sort by date
+      transactions.sort(function(a, b) { return (a.date || '').localeCompare(b.date || ''); });
+ 
+      // Build detail table
+      var detailBody = document.getElementById('detailBody');
+      detailBody.innerHTML = '';
+      var runningTotal = parseNum('prevBalance');
+      var totalTransfers = 0;
+      var totalDeposits = 0;
+      var totalAll = 0;
+ 
+      transactions.forEach(function(txn) {
+        var tr = document.createElement('tr');
+        runningTotal += txn.amount;
+        totalAll += txn.amount;
+        var transferVal = txn.type === 'transfer' ? txn.amount : 0;
+        var depositVal = txn.type === 'deposit' ? txn.amount : 0;
+        totalTransfers += transferVal;
+        totalDeposits += depositVal;
+ 
+        var amtClass = txn.amount >= 0 ? 'positive' : 'negative';
+        var rtClass = runningTotal >= 0 ? 'positive' : 'negative';
+ 
+        tr.innerHTML =
+          '<td>' + (txn.date || '—') + '</td>' +
+          '<td>' + (txn.desc || '—') + '</td>' +
+          '<td class="amount ' + amtClass + '">' + fmt(txn.amount) + '</td>' +
+          '<td class="amount">' + (transferVal ? fmt(transferVal) : '') + '</td>' +
+          '<td class="amount">' + (depositVal ? fmt(depositVal) : '') + '</td>' +
+          '<td class="amount ' + rtClass + '">' + fmt(runningTotal) + '</td>';
+        detailBody.appendChild(tr);
+      });
+ 
+      // Total row
+      var totalTr = document.createElement('tr');
+      totalTr.className = 'total-row';
+      totalTr.innerHTML =
+        '<td colspan="2"><strong>TOTALS</strong></td>' +
+        '<td class="amount"><strong>' + fmt(totalAll) + '</strong></td>' +
+        '<td class="amount"><strong>' + fmt(totalTransfers) + '</strong></td>' +
+        '<td class="amount"><strong>' + fmt(totalDeposits) + '</strong></td>' +
+        '<td class="amount"><strong>' + fmt(runningTotal) + '</strong></td>';
+      detailBody.appendChild(totalTr);
+ 
+      document.getElementById('detailEmpty').style.display = 'none';
+      document.getElementById('detailContent').style.display = 'block';
+ 
+      // Update summary
+      updateSummary();
+ 
+      // Switch to detail tab
+      document.querySelector('[data-tab="tab-detail"]').click();
+    }
+ 
+    // ── Update Summary ───────────────────────────────────
+    function updateSummary() {
+      var bankBal = parseNum('endingBalance');
+      var depTransit = parseNum('depositsInTransit');
+      var outChecks = parseNum('outstandingChecks');
+      var adjBank = bankBal + depTransit - outChecks;
+ 
+      var glBal = parseNum('glBalance');
+      var fees = parseNum('bankFees');
+      var interest = parseNum('interestEarned');
+      var nsf = parseNum('nsfChecks');
+      var other = parseNum('otherAdj');
+      var adjBook = glBal - fees + interest - nsf + other;
+ 
+      var diff = adjBank - adjBook;
+ 
+      // Header info
+      var monthVal = document.getElementById('statementMonth').value;
+      var monthDisplay = '—';
+      if (monthVal) {
+        var mp = monthVal.split('-');
+        monthDisplay = monthNames[parseInt(mp[1]) - 1] + ' ' + mp[0];
+      }
+      document.getElementById('summClientName').textContent = 'Client: ' + (document.getElementById('clientName').value || '—');
+      document.getElementById('summBankName').textContent = 'Bank: ' + (document.getElementById('bankName').value || '—');
+      document.getElementById('summMonth').textContent = 'Month of: ' + monthDisplay;
+      document.getElementById('summAcctNum').textContent = 'Account #: ' + (document.getElementById('accountNumber').value || '—');
+ 
+      // Bank side
+      document.getElementById('summBankBal').textContent = fmt(bankBal);
+      document.getElementById('summDepTransit').textContent = fmt(depTransit);
+      document.getElementById('summOutChecks').textContent = fmt(outChecks);
+      document.getElementById('summAdjBank').textContent = fmt(adjBank);
+ 
+      // Book side
+      document.getElementById('summGLBal').textContent = fmt(glBal);
+      document.getElementById('summFees').textContent = fmt(fees);
+      document.getElementById('summInterest').textContent = fmt(interest);
+      document.getElementById('summNSF').textContent = fmt(nsf);
+      document.getElementById('summOther').textContent = fmt(other);
+      document.getElementById('summAdjBook').textContent = fmt(adjBook);
+ 
+      // Difference
+      var diffEl = document.getElementById('summDiff');
+      diffEl.textContent = fmt(diff);
+      var section = document.getElementById('diffSection');
+      if (Math.abs(diff) < 0.01) {
+        diffEl.className = 'value match';
+        section.style.background = '#e8f5e9';
+        diffEl.textContent = '$0.00 \u2714 Reconciled';
+      } else {
+        diffEl.className = 'value mismatch';
+        section.style.background = '#ffebee';
+      }
+    }
+ 
+    // ── Dashboard ────────────────────────────────────────
+    var dashboardData = [
+      { name: 'Checking - Primary', due: '25th', months: {} },
+      { name: 'Savings - Reserve', due: '25th', months: {} },
+      { name: 'Credit Card - Business', due: '15th', months: {} },
+    ];
+ 
+    function renderDashboard() {
+      var tbody = document.getElementById('dashboardBody');
+      tbody.innerHTML = '';
+      var monthAbbr = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+ 
+      dashboardData.forEach(function(acct, idx) {
+        var tr = document.createElement('tr');
+        var cells = '<td><strong>' + acct.name + '</strong></td>';
+        cells += '<td class="folder-icon" title="Open folder">&#128193;</td>';
+        cells += '<td><a href="#" class="link-icon" title="Account link">&#128279;</a></td>';
+        cells += '<td>' + acct.due + '</td>';
+ 
+        monthAbbr.forEach(function(m) {
+          var status = acct.months[m] || '';
+          var cls = 'status-empty';
+          var text = '—';
+          if (status === 'done') { cls = 'status-done'; text = '\u2714'; }
+          else if (status === 'pending') { cls = 'status-pending'; text = '\u25CB'; }
+          cells += '<td><span class="' + cls + '" style="display:inline-block;width:100%;padding:2px 0;cursor:pointer;" onclick="toggleDashStatus(' + idx + ',\'' + m + '\')">' + text + '</span></td>';
+        });
+ 
+        tr.innerHTML = cells;
+        tbody.appendChild(tr);
+      });
+    }
+ 
+    function toggleDashStatus(idx, month) {
+      var current = dashboardData[idx].months[month] || '';
+      if (!current) dashboardData[idx].months[month] = 'pending';
+      else if (current === 'pending') dashboardData[idx].months[month] = 'done';
+      else dashboardData[idx].months[month] = '';
+      renderDashboard();
+    }
+ 
+    function addDashboardRow() {
+      var name = prompt('Account name:');
+      if (!name) return;
+      var due = prompt('Due date (e.g. "25th"):') || '—';
+      dashboardData.push({ name: name, due: due, months: {} });
+      renderDashboard();
+    }
+ 
+    renderDashboard();
+  </script>
+</body>
+</html>
+<!-- Developed by: HogarHogar -->
