@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="build-version" content="01.00w">
+  <meta name="build-version" content="01.01w">
   <meta name="template-id" content="sais-aut-7f3e9b2d">
-  <title>YOUR_PROJECT_TITLE</title>
+  <title>Monthly Bank Reconciliation</title>
   <style>
     html, body { margin: 0; padding: 0; height: 100%; }
     .splash {
@@ -36,14 +36,421 @@
 <body>
   <div id="splash-green" class="splash"><div class="splash-title">Website Ready</div><img id="splash-logo" src="" alt=""></div>
 
-  <!-- YOUR PAGE CONTENT HERE -->
+  <!-- Bank Reconciliation App -->
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1a1a2e; color: #e0e0e0; min-height: 100vh; }
+
+    /* Header */
+    .app-header { background: #16213e; padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #0f3460; }
+    .app-header h1 { font-size: 18px; color: #e94560; font-weight: 700; }
+    .app-header .month-select { display: flex; align-items: center; gap: 8px; }
+    .app-header select, .app-header input { background: #0f3460; color: #e0e0e0; border: 1px solid #533483; padding: 6px 10px; border-radius: 4px; font-size: 13px; }
+
+    /* Tabs */
+    .tab-bar { display: flex; background: #16213e; border-bottom: 1px solid #0f3460; padding: 0 16px; }
+    .tab-bar button { background: none; border: none; color: #888; padding: 12px 20px; font-size: 13px; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; }
+    .tab-bar button:hover { color: #ccc; }
+    .tab-bar button.active { color: #e94560; border-bottom-color: #e94560; }
+    .tab-content { display: none; padding: 20px; }
+    .tab-content.active { display: block; }
+
+    /* Tables */
+    .data-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 12px; }
+    .data-table th { background: #0f3460; color: #e94560; padding: 8px 10px; text-align: left; font-weight: 600; border: 1px solid #1a1a3e; position: sticky; top: 0; white-space: nowrap; }
+    .data-table td { padding: 6px 10px; border: 1px solid #1a1a3e; background: #16213e; }
+    .data-table tr:hover td { background: #1a2744; }
+    .data-table input, .data-table select { background: #0a0a1a; color: #e0e0e0; border: 1px solid #333; padding: 4px 6px; width: 100%; border-radius: 3px; font-size: 12px; }
+    .data-table input:focus { border-color: #e94560; outline: none; }
+    .data-table .currency { text-align: right; font-family: 'Consolas', monospace; }
+    .data-table .currency input { text-align: right; }
+
+    /* Section headers */
+    .section-title { font-size: 15px; color: #e94560; margin: 20px 0 8px; padding-bottom: 4px; border-bottom: 1px solid #333; }
+    .section-title:first-child { margin-top: 0; }
+
+    /* Form rows */
+    .form-row { display: flex; gap: 16px; margin-bottom: 12px; flex-wrap: wrap; }
+    .form-group { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 180px; }
+    .form-group label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
+    .form-group input, .form-group select { background: #0f3460; color: #e0e0e0; border: 1px solid #533483; padding: 8px 10px; border-radius: 4px; font-size: 13px; }
+    .form-group input:focus, .form-group select:focus { border-color: #e94560; outline: none; }
+
+    /* Buttons */
+    .btn { padding: 8px 16px; border: none; border-radius: 4px; font-size: 13px; cursor: pointer; transition: all 0.2s; }
+    .btn-primary { background: #e94560; color: #fff; }
+    .btn-primary:hover { background: #c73652; }
+    .btn-secondary { background: #0f3460; color: #e0e0e0; border: 1px solid #533483; }
+    .btn-secondary:hover { background: #1a4080; }
+    .btn-danger { background: #721c24; color: #f8d7da; }
+    .btn-sm { padding: 4px 10px; font-size: 11px; }
+    .btn-group { display: flex; gap: 8px; margin: 12px 0; }
+
+    /* Summary cards */
+    .summary-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 16px 0; }
+    .summary-card { background: #16213e; border: 1px solid #0f3460; border-radius: 6px; padding: 14px; }
+    .summary-card .card-label { font-size: 11px; color: #888; text-transform: uppercase; margin-bottom: 4px; }
+    .summary-card .card-value { font-size: 20px; font-weight: 700; color: #e94560; font-family: 'Consolas', monospace; }
+    .summary-card .card-value.positive { color: #66bb6a; }
+    .summary-card .card-value.negative { color: #ef5350; }
+
+    /* Reconciliation form */
+    .recon-form { max-width: 700px; background: #16213e; border: 1px solid #0f3460; border-radius: 8px; padding: 20px; margin: 0 auto; }
+    .recon-form h3 { text-align: center; color: #e94560; font-size: 16px; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px; }
+    .recon-line { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid #1a1a3e; }
+    .recon-line label { font-size: 13px; color: #ccc; }
+    .recon-line .recon-value { font-family: 'Consolas', monospace; font-size: 14px; min-width: 120px; text-align: right; }
+    .recon-line input { background: #0a0a1a; color: #e0e0e0; border: 1px solid #333; padding: 4px 8px; width: 120px; text-align: right; border-radius: 3px; font-family: 'Consolas', monospace; font-size: 13px; }
+    .recon-line input:focus { border-color: #e94560; outline: none; }
+    .recon-total { font-weight: 700; color: #e94560; border-top: 2px solid #e94560; border-bottom: none; padding-top: 10px; margin-top: 4px; }
+    .recon-match { text-align: center; margin-top: 12px; padding: 10px; border-radius: 6px; font-weight: 700; font-size: 14px; }
+    .recon-match.balanced { background: #1b5e20; color: #a5d6a7; }
+    .recon-match.unbalanced { background: #721c24; color: #f8d7da; }
+    .recon-section-label { font-size: 12px; color: #e94560; font-weight: 600; margin-top: 14px; margin-bottom: 4px; text-transform: uppercase; }
+
+    /* Monthly schedule */
+    .schedule-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .schedule-table th { background: #0f3460; color: #e94560; padding: 6px 8px; text-align: center; border: 1px solid #1a1a3e; position: sticky; top: 0; font-size: 11px; }
+    .schedule-table td { padding: 4px 6px; border: 1px solid #1a1a3e; text-align: center; background: #16213e; }
+    .schedule-table td.category { text-align: left; font-weight: 600; color: #e94560; background: #0f3460; }
+    .schedule-table td.item-name { text-align: left; padding-left: 12px; }
+    .schedule-table .status-done { background: #1b5e20; color: #a5d6a7; font-weight: 600; font-size: 11px; }
+    .schedule-table .status-paid { background: #0d47a1; color: #90caf9; font-weight: 600; font-size: 11px; }
+    .schedule-table .status-pending { background: #e65100; color: #ffcc80; font-weight: 600; font-size: 11px; }
+    .schedule-table .status-empty { background: #1a1a2e; }
+    .schedule-table .status-na { background: #1a1a2e; color: #555; }
+
+    /* Account rows in bank statement tab */
+    .account-section { background: #16213e; border: 1px solid #0f3460; border-radius: 6px; padding: 16px; margin-bottom: 16px; }
+    .account-section h4 { color: #e94560; font-size: 13px; margin-bottom: 10px; }
+
+    /* Transaction table scroll */
+    .table-wrapper { max-height: 400px; overflow-y: auto; border: 1px solid #0f3460; border-radius: 4px; }
+    .table-wrapper::-webkit-scrollbar { width: 6px; }
+    .table-wrapper::-webkit-scrollbar-thumb { background: #533483; border-radius: 3px; }
+
+    /* Add row button */
+    .add-row-btn { display: block; width: 100%; padding: 8px; background: none; border: 1px dashed #533483; color: #888; text-align: center; cursor: pointer; font-size: 12px; margin-top: 4px; border-radius: 4px; }
+    .add-row-btn:hover { border-color: #e94560; color: #e94560; }
+
+    /* Status indicator for tabs */
+    .tab-status { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-left: 6px; }
+    .tab-status.complete { background: #66bb6a; }
+    .tab-status.in-progress { background: #ffa726; }
+    .tab-status.empty { background: #555; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .form-row { flex-direction: column; }
+      .tab-bar { overflow-x: auto; }
+      .tab-bar button { white-space: nowrap; font-size: 12px; padding: 10px 14px; }
+    }
+
+    /* Print-like header for reconciliation */
+    .recon-header-info { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; font-size: 13px; }
+    .recon-header-info .label { color: #888; }
+    .recon-header-info .value { color: #e0e0e0; font-weight: 600; }
+  </style>
+
+  <div class="app-header">
+    <h1>Monthly Bank Reconciliation</h1>
+    <div class="month-select">
+      <label style="font-size:12px;color:#888;">Month:</label>
+      <select id="global-month">
+        <option value="01">January</option>
+        <option value="02">February</option>
+        <option value="03">March</option>
+        <option value="04">April</option>
+        <option value="05">May</option>
+        <option value="06">June</option>
+        <option value="07">July</option>
+        <option value="08">August</option>
+        <option value="09">September</option>
+        <option value="10">October</option>
+        <option value="11">November</option>
+        <option value="12" selected>December</option>
+      </select>
+      <label style="font-size:12px;color:#888;">Year:</label>
+      <input type="number" id="global-year" value="2025" style="width:80px;">
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <button class="active" onclick="switchTab('tab1', this)">1. Bank Statement<span class="tab-status empty"></span></button>
+    <button onclick="switchTab('tab2', this)">2. Detailed Reconciliation<span class="tab-status empty"></span></button>
+    <button onclick="switchTab('tab3', this)">3. Reconciliation Summary<span class="tab-status empty"></span></button>
+    <button onclick="switchTab('tab4', this)">4. Monthly Schedule<span class="tab-status empty"></span></button>
+  </div>
+
+  <!-- TAB 1: Bank Statement Input -->
+  <div id="tab1" class="tab-content active">
+    <h3 class="section-title">Bank Statement Information</h3>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Bank Name</label>
+        <input type="text" id="bank-name" placeholder="e.g. CommonWealthONE FCU" value="CommonWealthONE FCU">
+      </div>
+      <div class="form-group">
+        <label>Account Number</label>
+        <input type="text" id="account-number" placeholder="e.g. ****5505" value="****5505">
+      </div>
+      <div class="form-group">
+        <label>Statement Period</label>
+        <input type="text" id="stmt-period" placeholder="e.g. 12/1/2025 - 12/31/2025" value="12/1/2025 - 12/31/2025">
+      </div>
+    </div>
+
+    <h3 class="section-title">Deposit Accounts</h3>
+    <div class="account-section">
+      <table class="data-table" id="deposit-accounts-table">
+        <thead>
+          <tr>
+            <th style="width:180px;">Account Name</th>
+            <th style="width:80px;">ID</th>
+            <th style="width:120px;">Previous Balance</th>
+            <th style="width:120px;">Deposits</th>
+            <th style="width:120px;">Withdrawals</th>
+            <th style="width:120px;">Ending Balance</th>
+            <th style="width:100px;">Type</th>
+            <th style="width:40px;"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><input type="text" value="Primary Share"></td>
+            <td><input type="text" value="ID#00"></td>
+            <td class="currency"><input type="text" value="25.00"></td>
+            <td class="currency"><input type="text" value="0.00"></td>
+            <td class="currency"><input type="text" value="0.00"></td>
+            <td class="currency"><input type="text" value="25.00"></td>
+            <td><select><option>Savings</option><option selected>Share</option><option>Checking</option></select></td>
+            <td><button class="btn btn-danger btn-sm" onclick="removeRow(this)">x</button></td>
+          </tr>
+          <tr>
+            <td><input type="text" value="CheckONE"></td>
+            <td><input type="text" value="ID#09"></td>
+            <td class="currency"><input type="text" value="15,091.53"></td>
+            <td class="currency"><input type="text" value="3,500.00"></td>
+            <td class="currency"><input type="text" value="2,814.22"></td>
+            <td class="currency"><input type="text" value="15,777.31"></td>
+            <td><select><option>Savings</option><option>Share</option><option selected>Checking</option></select></td>
+            <td><button class="btn btn-danger btn-sm" onclick="removeRow(this)">x</button></td>
+          </tr>
+        </tbody>
+      </table>
+      <button class="add-row-btn" onclick="addDepositAccount()">+ Add Deposit Account</button>
+    </div>
+
+    <h3 class="section-title">Loan Accounts</h3>
+    <div class="account-section">
+      <table class="data-table" id="loan-accounts-table">
+        <thead>
+          <tr>
+            <th style="width:180px;">Account Name</th>
+            <th style="width:80px;">ID</th>
+            <th style="width:120px;">Previous Balance</th>
+            <th style="width:120px;">Advances</th>
+            <th style="width:120px;">Payments</th>
+            <th style="width:120px;">Ending Balance</th>
+            <th style="width:100px;">Type</th>
+            <th style="width:40px;"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><input type="text" value="HELOC - Interest Only"></td>
+            <td><input type="text" value="ID#69"></td>
+            <td class="currency"><input type="text" value="25,000.00"></td>
+            <td class="currency"><input type="text" value="0.00"></td>
+            <td class="currency"><input type="text" value="0.00"></td>
+            <td class="currency"><input type="text" value="25,000.00"></td>
+            <td><select><option selected>HELOC</option><option>Auto</option><option>Personal</option><option>Mortgage</option></select></td>
+            <td><button class="btn btn-danger btn-sm" onclick="removeRow(this)">x</button></td>
+          </tr>
+        </tbody>
+      </table>
+      <button class="add-row-btn" onclick="addLoanAccount()">+ Add Loan Account</button>
+    </div>
+
+    <h3 class="section-title">Transactions</h3>
+    <div class="btn-group">
+      <button class="btn btn-primary" onclick="addTransaction()">+ Add Transaction</button>
+      <button class="btn btn-secondary" onclick="populateSampleTransactions()">Load Sample Data</button>
+      <button class="btn btn-secondary" onclick="generateReconciliation()">Generate Reconciliation &#8594;</button>
+    </div>
+    <div class="table-wrapper">
+      <table class="data-table" id="transactions-table">
+        <thead>
+          <tr>
+            <th style="width:100px;">Date</th>
+            <th style="width:50px;">Check #</th>
+            <th>Description</th>
+            <th style="width:110px;">Amount</th>
+            <th style="width:80px;">Type</th>
+            <th style="width:40px;"></th>
+          </tr>
+        </thead>
+        <tbody id="transactions-body">
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TAB 2: Detailed Reconciliation -->
+  <div id="tab2" class="tab-content">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <h3 class="section-title" style="margin:0;">Detailed Reconciliation &#8212; F &amp; C PERSONAL ACCOUNT</h3>
+      <div class="btn-group" style="margin:0;">
+        <button class="btn btn-secondary btn-sm" onclick="addReconRow()">+ Add Row</button>
+        <button class="btn btn-primary btn-sm" onclick="updateSummary()">Update Summary &#8594;</button>
+      </div>
+    </div>
+    <div class="summary-cards">
+      <div class="summary-card">
+        <div class="card-label">Beginning Balance</div>
+        <div class="card-value" id="begin-bal-display">$15,091.53</div>
+      </div>
+      <div class="summary-card">
+        <div class="card-label">Total Deposits</div>
+        <div class="card-value positive" id="total-dep-display">$0.00</div>
+      </div>
+      <div class="summary-card">
+        <div class="card-label">Total Withdrawals</div>
+        <div class="card-value negative" id="total-wd-display">$0.00</div>
+      </div>
+      <div class="summary-card">
+        <div class="card-label">Ending Balance</div>
+        <div class="card-value" id="end-bal-display">$15,091.53</div>
+      </div>
+    </div>
+    <div class="table-wrapper" style="max-height:500px;">
+      <table class="data-table" id="recon-detail-table">
+        <thead>
+          <tr>
+            <th style="width:90px;">Date</th>
+            <th>Description</th>
+            <th style="width:100px;">Amount</th>
+            <th style="width:100px;">Transfer</th>
+            <th style="width:100px;">Deposit</th>
+            <th style="width:110px;">Total</th>
+            <th style="width:36px;"></th>
+          </tr>
+        </thead>
+        <tbody id="recon-detail-body">
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TAB 3: Reconciliation Summary -->
+  <div id="tab3" class="tab-content">
+    <div class="recon-form">
+      <h3>COFCU BANK RECONCILIATION</h3>
+      <div class="recon-header-info">
+        <div><span class="label">Name of Client:</span></div>
+        <div><input type="text" value="F &amp; C" style="background:#0a0a1a;color:#e0e0e0;border:1px solid #333;padding:4px 8px;border-radius:3px;width:100%;"></div>
+        <div><span class="label">Bank:</span></div>
+        <div><input type="text" value="COFCU" style="background:#0a0a1a;color:#e0e0e0;border:1px solid #333;padding:4px 8px;border-radius:3px;width:100%;"></div>
+        <div><span class="label">Month Of:</span></div>
+        <div><input type="text" id="recon-month" value="December 2025" style="background:#0a0a1a;color:#e0e0e0;border:1px solid #333;padding:4px 8px;border-radius:3px;width:100%;"></div>
+        <div><span class="label">Account Number:</span></div>
+        <div><input type="text" value="****5505" style="background:#0a0a1a;color:#e0e0e0;border:1px solid #333;padding:4px 8px;border-radius:3px;width:100%;"></div>
+      </div>
+
+      <div class="recon-section-label">Balance Comparison</div>
+      <div class="recon-line">
+        <label>Balance per bank statement</label>
+        <input type="text" id="recon-bank-bal" value="15,777.31" oninput="calcRecon()">
+      </div>
+      <div class="recon-line">
+        <label>General Ledger Account Balance</label>
+        <input type="text" id="recon-gl-bal" value="15,777.31" oninput="calcRecon()">
+      </div>
+
+      <div class="recon-section-label">Adjustments to Bank Statement</div>
+      <div class="recon-line">
+        <label>Bank fees (monthly charge)</label>
+        <input type="text" id="recon-fees" value="0.00" oninput="calcRecon()">
+      </div>
+      <div class="recon-line">
+        <label>Outstanding deposits</label>
+        <input type="text" id="recon-dep-out" value="0.00" oninput="calcRecon()">
+      </div>
+      <div class="recon-line">
+        <label>Interest earned</label>
+        <input type="text" id="recon-interest" value="0.00" oninput="calcRecon()">
+      </div>
+      <div class="recon-line">
+        <label>Transfers not on statement</label>
+        <input type="text" id="recon-transfers" value="0.00" oninput="calcRecon()">
+      </div>
+
+      <div class="recon-section-label">Checks Outstanding</div>
+      <div id="checks-outstanding-list">
+        <div class="recon-line">
+          <input type="text" placeholder="Check # / Description" style="width:200px;" value="">
+          <input type="text" placeholder="0.00" value="0.00" class="check-amt" oninput="calcRecon()">
+        </div>
+      </div>
+      <button class="add-row-btn" onclick="addCheckOutstanding()" style="max-width:300px;margin:4px auto;">+ Add Check</button>
+
+      <div class="recon-section-label">Journal Entries</div>
+      <div id="journal-entries-list">
+        <div class="recon-line">
+          <input type="text" placeholder="Description" style="width:200px;" value="">
+          <input type="text" placeholder="0.00" value="0.00" class="journal-amt" oninput="calcRecon()">
+        </div>
+      </div>
+      <button class="add-row-btn" onclick="addJournalEntry()" style="max-width:300px;margin:4px auto;">+ Add Entry</button>
+
+      <div style="margin-top:16px;border-top:2px solid #e94560;padding-top:12px;">
+        <div class="recon-line recon-total">
+          <label>Adjusted Bank Balance</label>
+          <div class="recon-value" id="adjusted-bank-bal">$15,777.31</div>
+        </div>
+        <div class="recon-line recon-total">
+          <label>Adjusted Book Balance</label>
+          <div class="recon-value" id="adjusted-book-bal">$15,777.31</div>
+        </div>
+        <div class="recon-line recon-total">
+          <label>Difference</label>
+          <div class="recon-value" id="recon-difference">$0.00</div>
+        </div>
+      </div>
+      <div class="recon-match balanced" id="recon-status">BALANCED &#8212; Reconciliation Complete</div>
+    </div>
+  </div>
+
+  <!-- TAB 4: Monthly Schedule -->
+  <div id="tab4" class="tab-content">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <h3 class="section-title" style="margin:0;">Monthly Payment Schedule &#8212; 2025</h3>
+    </div>
+    <div style="overflow-x:auto;">
+      <table class="schedule-table" id="schedule-table">
+        <thead>
+          <tr>
+            <th style="width:160px;text-align:left;">Category / Item</th>
+            <th style="width:60px;">Folder</th>
+            <th style="width:50px;">Link</th>
+            <th style="width:50px;">Due</th>
+            <th>Jan</th><th>Feb</th><th>Mar</th><th>Apr</th>
+            <th>May</th><th>Jun</th><th>Jul</th><th>Aug</th>
+            <th>Sep</th><th>Oct</th><th>Nov</th><th>Dec</th>
+          </tr>
+        </thead>
+        <tbody id="schedule-body">
+        </tbody>
+      </table>
+    </div>
+  </div>
 
   <script>
     /* tpl:7f3e9b2d */ // ── CONFIG ──────────────────────────────────────────────────────────
     // Logo shown on the green "Website Ready" splash screen
     var DEVELOPER_LOGO_URL = 'https://www.shadowaisolutions.com/SAIS%20Logo.png';
     var YOUR_ORG_LOGO_URL = 'https://logoipsum.com/logoipsum-avatar.png';
-    var LOGO_URL = DEVELOPER_LOGO_URL;
+    var LOGO_URL = YOUR_ORG_LOGO_URL;
 
     // Auto-refresh: set to false to disable build-version polling
     var AUTO_REFRESH = true;
@@ -213,6 +620,333 @@
     document.addEventListener('visibilitychange', function() {
       if (document.visibilityState === 'visible') requestWakeLock();
     });
+
+    // ── APP LOGIC ──────────────────────────────────────────────────────
+    // Tab switching
+    function switchTab(tabId, btn) {
+      document.querySelectorAll('.tab-content').forEach(function(t) { t.classList.remove('active'); });
+      document.querySelectorAll('.tab-bar button').forEach(function(b) { b.classList.remove('active'); });
+      document.getElementById(tabId).classList.add('active');
+      btn.classList.add('active');
+    }
+
+    // Utility: parse currency string to number
+    function parseCurrency(str) {
+      if (!str) return 0;
+      return parseFloat(String(str).replace(/[,$\s]/g, '')) || 0;
+    }
+
+    // Utility: format number as currency
+    function fmtCurrency(num) {
+      return '$' + num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    }
+
+    // Remove a table row
+    function removeRow(btn) {
+      btn.closest('tr').remove();
+    }
+
+    // Add deposit account row
+    function addDepositAccount() {
+      var tbody = document.querySelector('#deposit-accounts-table tbody');
+      var tr = document.createElement('tr');
+      tr.innerHTML = '<td><input type="text" placeholder="Account Name"></td>'
+        + '<td><input type="text" placeholder="ID#"></td>'
+        + '<td class="currency"><input type="text" value="0.00"></td>'
+        + '<td class="currency"><input type="text" value="0.00"></td>'
+        + '<td class="currency"><input type="text" value="0.00"></td>'
+        + '<td class="currency"><input type="text" value="0.00"></td>'
+        + '<td><select><option>Savings</option><option>Share</option><option>Checking</option></select></td>'
+        + '<td><button class="btn btn-danger btn-sm" onclick="removeRow(this)">x</button></td>';
+      tbody.appendChild(tr);
+    }
+
+    // Add loan account row
+    function addLoanAccount() {
+      var tbody = document.querySelector('#loan-accounts-table tbody');
+      var tr = document.createElement('tr');
+      tr.innerHTML = '<td><input type="text" placeholder="Account Name"></td>'
+        + '<td><input type="text" placeholder="ID#"></td>'
+        + '<td class="currency"><input type="text" value="0.00"></td>'
+        + '<td class="currency"><input type="text" value="0.00"></td>'
+        + '<td class="currency"><input type="text" value="0.00"></td>'
+        + '<td class="currency"><input type="text" value="0.00"></td>'
+        + '<td><select><option>HELOC</option><option>Auto</option><option>Personal</option><option>Mortgage</option></select></td>'
+        + '<td><button class="btn btn-danger btn-sm" onclick="removeRow(this)">x</button></td>';
+      tbody.appendChild(tr);
+    }
+
+    // Add transaction row
+    function addTransaction() {
+      var tbody = document.getElementById('transactions-body');
+      var tr = document.createElement('tr');
+      tr.innerHTML = '<td><input type="text" placeholder="MM/DD"></td>'
+        + '<td><input type="text" placeholder="#"></td>'
+        + '<td><input type="text" placeholder="Description"></td>'
+        + '<td class="currency"><input type="text" value="0.00"></td>'
+        + '<td><select><option value="withdrawal">Withdrawal</option><option value="deposit">Deposit</option><option value="transfer">Transfer</option><option value="fee">Fee</option></select></td>'
+        + '<td><button class="btn btn-danger btn-sm" onclick="removeRow(this)">x</button></td>';
+      tbody.appendChild(tr);
+    }
+
+    // Load sample transaction data matching the user's bank statement
+    function populateSampleTransactions() {
+      var data = [
+        { date: '12/02', chk: '', desc: 'Checks Fees', amt: '5.00', type: 'fee' },
+        { date: '12/02', chk: '', desc: 'ATM Fee - Non-COFCU', amt: '2.50', type: 'fee' },
+        { date: '12/03', chk: '', desc: 'POS Debit - GROCERY STORE', amt: '87.43', type: 'withdrawal' },
+        { date: '12/05', chk: '', desc: 'ACH Transfer - PAYROLL DEPOSIT', amt: '1,750.00', type: 'deposit' },
+        { date: '12/06', chk: '1042', desc: 'Check #1042 - RENT', amt: '1,200.00', type: 'withdrawal' },
+        { date: '12/08', chk: '', desc: 'POS Debit - AMAZON', amt: '45.99', type: 'withdrawal' },
+        { date: '12/10', chk: '', desc: 'Transfer to Savings', amt: '200.00', type: 'transfer' },
+        { date: '12/12', chk: '', desc: 'POS Debit - GAS STATION', amt: '52.30', type: 'withdrawal' },
+        { date: '12/15', chk: '', desc: 'ACH - ELECTRIC COMPANY', amt: '125.00', type: 'withdrawal' },
+        { date: '12/16', chk: '', desc: 'POS Debit - RESTAURANT', amt: '38.50', type: 'withdrawal' },
+        { date: '12/18', chk: '', desc: 'ACH Transfer - PAYROLL DEPOSIT', amt: '1,750.00', type: 'deposit' },
+        { date: '12/20', chk: '1043', desc: 'Check #1043 - INSURANCE', amt: '350.00', type: 'withdrawal' },
+        { date: '12/22', chk: '', desc: 'POS Debit - PHARMACY', amt: '22.50', type: 'withdrawal' },
+        { date: '12/24', chk: '', desc: 'Transfer from Savings', amt: '200.00', type: 'transfer' },
+        { date: '12/27', chk: '', desc: 'ACH - INTERNET SERVICE', amt: '79.99', type: 'withdrawal' },
+        { date: '12/28', chk: '', desc: 'POS Debit - DEPARTMENT STORE', amt: '156.01', type: 'withdrawal' },
+        { date: '12/30', chk: '', desc: 'ACH - PHONE BILL', amt: '85.00', type: 'withdrawal' },
+        { date: '12/31', chk: '', desc: 'Interest Earned', amt: '0.50', type: 'deposit' }
+      ];
+      var tbody = document.getElementById('transactions-body');
+      tbody.innerHTML = '';
+      data.forEach(function(t) {
+        var tr = document.createElement('tr');
+        tr.innerHTML = '<td><input type="text" value="' + t.date + '"></td>'
+          + '<td><input type="text" value="' + t.chk + '"></td>'
+          + '<td><input type="text" value="' + t.desc + '"></td>'
+          + '<td class="currency"><input type="text" value="' + t.amt + '"></td>'
+          + '<td><select>'
+          + '<option value="withdrawal"' + (t.type === 'withdrawal' ? ' selected' : '') + '>Withdrawal</option>'
+          + '<option value="deposit"' + (t.type === 'deposit' ? ' selected' : '') + '>Deposit</option>'
+          + '<option value="transfer"' + (t.type === 'transfer' ? ' selected' : '') + '>Transfer</option>'
+          + '<option value="fee"' + (t.type === 'fee' ? ' selected' : '') + '>Fee</option>'
+          + '</select></td>'
+          + '<td><button class="btn btn-danger btn-sm" onclick="removeRow(this)">x</button></td>';
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Generate detailed reconciliation from transactions (Tab 1 -> Tab 2)
+    function generateReconciliation() {
+      var rows = document.querySelectorAll('#transactions-body tr');
+      var tbody = document.getElementById('recon-detail-body');
+      tbody.innerHTML = '';
+      // Get beginning balance from CheckONE previous balance
+      var depositRows = document.querySelectorAll('#deposit-accounts-table tbody tr');
+      var beginBal = 0;
+      if (depositRows.length > 1) {
+        beginBal = parseCurrency(depositRows[1].querySelectorAll('input')[2].value);
+      }
+      var runningTotal = beginBal;
+      var totalDeposits = 0;
+      var totalWithdrawals = 0;
+
+      // Add beginning balance row
+      var beginRow = document.createElement('tr');
+      beginRow.innerHTML = '<td><input type="text" value="" disabled style="background:transparent;border:none;"></td>'
+        + '<td><input type="text" value="Beginning Balance" disabled style="background:transparent;border:none;font-weight:700;color:#e94560;"></td>'
+        + '<td class="currency"><input type="text" value="" disabled style="background:transparent;border:none;"></td>'
+        + '<td class="currency"><input type="text" value="" disabled style="background:transparent;border:none;"></td>'
+        + '<td class="currency"><input type="text" value="" disabled style="background:transparent;border:none;"></td>'
+        + '<td class="currency"><input type="text" value="' + fmtCurrency(runningTotal) + '" disabled style="background:transparent;border:none;font-weight:700;"></td>'
+        + '<td></td>';
+      tbody.appendChild(beginRow);
+
+      rows.forEach(function(row) {
+        var inputs = row.querySelectorAll('input');
+        var sel = row.querySelector('select');
+        var date = inputs[0].value;
+        var desc = inputs[2].value;
+        var amt = parseCurrency(inputs[3].value);
+        var type = sel.value;
+        var transfer = '';
+        var deposit = '';
+        var amountCol = '';
+
+        if (type === 'deposit') {
+          deposit = fmtCurrency(amt);
+          runningTotal += amt;
+          totalDeposits += amt;
+        } else if (type === 'transfer') {
+          transfer = fmtCurrency(amt);
+          // Transfers with "from" are deposits, "to" are withdrawals
+          if (desc.toLowerCase().indexOf('from') > -1) {
+            runningTotal += amt;
+            totalDeposits += amt;
+          } else {
+            runningTotal -= amt;
+            totalWithdrawals += amt;
+          }
+        } else {
+          amountCol = fmtCurrency(amt);
+          runningTotal -= amt;
+          totalWithdrawals += amt;
+        }
+
+        var tr = document.createElement('tr');
+        tr.innerHTML = '<td><input type="text" value="' + date + '"></td>'
+          + '<td><input type="text" value="' + desc + '"></td>'
+          + '<td class="currency"><input type="text" value="' + amountCol + '"></td>'
+          + '<td class="currency"><input type="text" value="' + transfer + '"></td>'
+          + '<td class="currency"><input type="text" value="' + deposit + '"></td>'
+          + '<td class="currency"><input type="text" value="' + fmtCurrency(runningTotal) + '" disabled style="background:transparent;border:none;font-weight:600;"></td>'
+          + '<td><button class="btn btn-danger btn-sm" onclick="removeRow(this)">x</button></td>';
+        tbody.appendChild(tr);
+      });
+
+      // Update summary cards
+      document.getElementById('begin-bal-display').textContent = fmtCurrency(beginBal);
+      document.getElementById('total-dep-display').textContent = fmtCurrency(totalDeposits);
+      document.getElementById('total-wd-display').textContent = fmtCurrency(totalWithdrawals);
+      document.getElementById('end-bal-display').textContent = fmtCurrency(runningTotal);
+
+      // Switch to tab 2
+      switchTab('tab2', document.querySelectorAll('.tab-bar button')[1]);
+    }
+
+    // Add a row to detailed reconciliation
+    function addReconRow() {
+      var tbody = document.getElementById('recon-detail-body');
+      var tr = document.createElement('tr');
+      tr.innerHTML = '<td><input type="text" placeholder="MM/DD"></td>'
+        + '<td><input type="text" placeholder="Description"></td>'
+        + '<td class="currency"><input type="text" value=""></td>'
+        + '<td class="currency"><input type="text" value=""></td>'
+        + '<td class="currency"><input type="text" value=""></td>'
+        + '<td class="currency"><input type="text" value="" disabled style="background:transparent;border:none;"></td>'
+        + '<td><button class="btn btn-danger btn-sm" onclick="removeRow(this)">x</button></td>';
+      tbody.appendChild(tr);
+    }
+
+    // Push ending balance to reconciliation summary (Tab 2 -> Tab 3)
+    function updateSummary() {
+      var endBal = document.getElementById('end-bal-display').textContent;
+      var val = parseCurrency(endBal);
+      document.getElementById('recon-bank-bal').value = val.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      document.getElementById('recon-gl-bal').value = val.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      calcRecon();
+      switchTab('tab3', document.querySelectorAll('.tab-bar button')[2]);
+    }
+
+    // Reconciliation calculation (Tab 3)
+    function calcRecon() {
+      var bankBal = parseCurrency(document.getElementById('recon-bank-bal').value);
+      var glBal = parseCurrency(document.getElementById('recon-gl-bal').value);
+      var fees = parseCurrency(document.getElementById('recon-fees').value);
+      var depOut = parseCurrency(document.getElementById('recon-dep-out').value);
+      var interest = parseCurrency(document.getElementById('recon-interest').value);
+      var transfers = parseCurrency(document.getElementById('recon-transfers').value);
+
+      var checksTotal = 0;
+      document.querySelectorAll('.check-amt').forEach(function(el) { checksTotal += parseCurrency(el.value); });
+
+      var journalTotal = 0;
+      document.querySelectorAll('.journal-amt').forEach(function(el) { journalTotal += parseCurrency(el.value); });
+
+      var adjustedBank = bankBal + depOut - checksTotal - fees + interest - transfers;
+      var adjustedBook = glBal + journalTotal;
+      var diff = adjustedBank - adjustedBook;
+
+      document.getElementById('adjusted-bank-bal').textContent = fmtCurrency(adjustedBank);
+      document.getElementById('adjusted-book-bal').textContent = fmtCurrency(adjustedBook);
+      document.getElementById('recon-difference').textContent = fmtCurrency(Math.abs(diff));
+
+      var statusEl = document.getElementById('recon-status');
+      if (Math.abs(diff) < 0.01) {
+        statusEl.className = 'recon-match balanced';
+        statusEl.innerHTML = 'BALANCED &#8212; Reconciliation Complete';
+      } else {
+        statusEl.className = 'recon-match unbalanced';
+        statusEl.innerHTML = 'UNBALANCED &#8212; Difference: ' + fmtCurrency(Math.abs(diff));
+      }
+    }
+
+    // Add check outstanding row
+    function addCheckOutstanding() {
+      var container = document.getElementById('checks-outstanding-list');
+      var div = document.createElement('div');
+      div.className = 'recon-line';
+      div.innerHTML = '<input type="text" placeholder="Check # / Description" style="width:200px;">'
+        + '<input type="text" placeholder="0.00" value="0.00" class="check-amt" oninput="calcRecon()">';
+      container.appendChild(div);
+    }
+
+    // Add journal entry row
+    function addJournalEntry() {
+      var container = document.getElementById('journal-entries-list');
+      var div = document.createElement('div');
+      div.className = 'recon-line';
+      div.innerHTML = '<input type="text" placeholder="Description" style="width:200px;">'
+        + '<input type="text" placeholder="0.00" value="0.00" class="journal-amt" oninput="calcRecon()">';
+      container.appendChild(div);
+    }
+
+    // Populate Monthly Schedule (Tab 4)
+    function populateSchedule() {
+      var schedule = [
+        { category: 'Bank Statement', items: [
+          { name: 'COFCU - Checking', folder: 'Y', link: 'Y', due: '10th', months: ['Done','Done','Done','Done','Done','Done','Done','Done','Done','Done','Done','Done'] },
+          { name: 'COFCU - Savings', folder: 'Y', link: 'Y', due: '10th', months: ['Done','Done','Done','Done','Done','Done','Done','Done','Done','Done','Done','Done'] }
+        ]},
+        { category: 'Credit Card', items: [
+          { name: 'Visa - Primary', folder: 'Y', link: 'Y', due: '15th', months: ['Paid','Paid','Paid','Paid','Paid','Paid','Paid','Paid','Paid','Paid','Paid','Paid'] },
+          { name: 'MC - Secondary', folder: 'Y', link: 'Y', due: '20th', months: ['Paid','Paid','Paid','Paid','Paid','Paid','Paid','Paid','Paid','Paid','Paid',''] }
+        ]},
+        { category: 'Services', items: [
+          { name: 'Electric - Dominion', folder: 'Y', link: '', due: '5th', months: ['Paid','Paid','Paid','Paid','Paid','Paid','Paid','Paid','Paid','Paid','Paid','Paid'] },
+          { name: 'Internet - Cox', folder: 'Y', link: '', due: '12th', months: ['Paid','Paid','Paid','Paid','Paid','Paid','Paid','Paid','Paid','Paid','Paid','Paid'] },
+          { name: 'Phone - T-Mobile', folder: 'Y', link: '', due: '18th', months: ['Paid','Paid','Paid','Paid','Paid','Paid','Paid','Paid','Paid','Paid','Paid','Paid'] },
+          { name: 'Water/Sewer', folder: 'Y', link: '', due: '1st', months: ['Paid','Paid','Paid','Paid','Paid','Paid','Paid','Paid','Paid','Paid','Paid',''] }
+        ]},
+        { category: 'Home & Insurance', items: [
+          { name: 'Mortgage - Wells Fargo', folder: 'Y', link: 'Y', due: '1st', months: ['Paid','Paid','Paid','Paid','Paid','Paid','Paid','Paid','Paid','Paid','Paid','Paid'] },
+          { name: 'Home Insurance', folder: 'Y', link: '', due: 'Annual', months: ['','','','','','Paid','','','','','',''] },
+          { name: 'HELOC Interest', folder: 'Y', link: 'Y', due: '15th', months: ['Paid','Paid','Paid','Paid','Paid','Paid','Paid','Paid','Paid','Paid','Paid','Paid'] }
+        ]},
+        { category: 'Cars & Insurance', items: [
+          { name: 'Car Payment - Honda', folder: 'Y', link: 'Y', due: '10th', months: ['Paid','Paid','Paid','Paid','Paid','Paid','Paid','Paid','Paid','Paid','Paid','Paid'] },
+          { name: 'Car Insurance - GEICO', folder: 'Y', link: '', due: '1st', months: ['Paid','','Paid','','Paid','','Paid','','Paid','','Paid',''] }
+        ]}
+      ];
+
+      var tbody = document.getElementById('schedule-body');
+      tbody.innerHTML = '';
+      schedule.forEach(function(cat) {
+        // Category header row
+        var catRow = document.createElement('tr');
+        var catTd = document.createElement('td');
+        catTd.className = 'category';
+        catTd.colSpan = 16;
+        catTd.textContent = cat.category;
+        catRow.appendChild(catTd);
+        tbody.appendChild(catRow);
+
+        cat.items.forEach(function(item) {
+          var tr = document.createElement('tr');
+          tr.innerHTML = '<td class="item-name">' + item.name + '</td>'
+            + '<td>' + (item.folder || '') + '</td>'
+            + '<td>' + (item.link || '') + '</td>'
+            + '<td>' + (item.due || '') + '</td>';
+          item.months.forEach(function(m) {
+            var td = document.createElement('td');
+            if (m === 'Done') { td.className = 'status-done'; td.textContent = 'Done'; }
+            else if (m === 'Paid') { td.className = 'status-paid'; td.textContent = 'Paid'; }
+            else if (m === 'Pending') { td.className = 'status-pending'; td.textContent = 'Pending'; }
+            else { td.className = 'status-empty'; td.textContent = ''; }
+            tr.appendChild(td);
+          });
+          tbody.appendChild(tr);
+        });
+      });
+    }
+
+    // Initialize
+    populateSchedule();
+    populateSampleTransactions();
   </script>
 </body>
 </html>

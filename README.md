@@ -2,7 +2,7 @@
 
 A GitHub Pages deployment framework with automatic version polling, auto-refresh, and Google Apps Script (GAS) embedding support.
 
-Last updated: `2026-02-19 06:56:10 PM EST`
+Last updated: `2026-02-19 08:38:40 PM EST`
 
 **Live site:** [HogarHogar.github.io/MonthlyPayments](https://HogarHogar.github.io/MonthlyPayments)
 
