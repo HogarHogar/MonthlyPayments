@@ -4,7 +4,7 @@
 
 | Page | File | Version | Live URL | Status |
 |------|------|---------|----------|--------|
-| Landing Page | `live-site-pages/index.html` | v01.00w | [View](https://HogarHogar.github.io/MonthlyPayments/) | Active |
+| Landing Page | `live-site-pages/index.html` | v01.01w | [View](https://HogarHogar.github.io/MonthlyPayments/) | Active |
 
 ## GAS Projects
 
